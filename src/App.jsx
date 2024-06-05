@@ -1,34 +1,56 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { BrowserRouter, Route, Routes } from "react-router-dom"
+
+import  axios  from 'axios'
 import './App.css'
+import Home from "./Components/Home"
+import Header from "./Components/layouts/Header"
+import Register from "./Components/auth/Register"
+import { getConfig, BASE_URL } from "./helpers/config"
+import { AuthContext } from "./Components/context/authContext"
+import { useEffect, useState } from "react"
+import Login from "./Components/auth/Login"
+
+
+
+
+
+
+
+
 
 function App() {
-  const [count, setCount] = useState(0)
+
+  const [accessToken, setAccessToken] = useState(JSON.parse(localStorage.getItem('currentToken')))
+  const [currentUser, setCurrentUser] = useState(null)
+
+  useEffect(() => {
+    const fetchCurrentlyLoggedInUser = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/user`, getConfig(accessToken))
+        setCurrentUser(response.data.user)
+      } catch (error) {
+          if (error?.response?.status === 401) {
+              localStorage.removeItem('currentToken')
+              setCurrentUser(null)
+              setAccessToken('')
+          }
+          console.log(error)
+      }
+    }
+    if (accessToken) fetchCurrentlyLoggedInUser()
+  }, [accessToken])
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <AuthContext.Provider value={{ accessToken, setAccessToken, currentUser, setCurrentUser}}>
+    <BrowserRouter>
+    <Header />
+    <Routes>
+      <Route path="/" element={ <Home /> } />
+      <Route path="/login" element={ <Login /> } />
+      <Route path="/register" element={ <Register /> } />
+    </Routes>
+  </BrowserRouter>
+  </AuthContext.Provider>
   )
 }
 
