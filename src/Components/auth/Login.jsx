@@ -6,6 +6,7 @@ import { BASE_URL } from '../../helpers/config'
 import useValidation from '../custom/useValidation'
 import Spinner from '../layouts/Spinner'
 import { AuthContext } from '../context/authContext'
+import './Login.css'
 
 
 export default function Login() {
@@ -52,44 +53,47 @@ export default function Login() {
     }
 
     return (
-        <div className="container">
-            <div className="row my-5">
-                <div className="col-md-6 mx-auto">
-                    <div className="card">
-                        <div className="card-header bg-white">
-                            <h4 className="text-center mt-2">
-                                Login
-                            </h4>
-                        </div>
-                        <div className="card-body">
-                            <form onSubmit={(e) => handleSubmit(e)}>
-                                <div className="mb-3">
-                                    <label htmlFor="exampleInputEmail1" className="form-label">Email address*</label>
-                                    <input type="email" 
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" />
-                                    { useValidation(errors, 'email')}
-                                </div>
-                                <div className="mb-3">
-                                    <label htmlFor="exampleInputPassword1" className="form-label">Password*</label>
-                                    <input type="password" 
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="form-control" id="exampleInputPassword1" />
-                                    { useValidation(errors, 'password')}
-                                </div>
-                                { 
-                                    loading ? 
-                                        <Spinner />
-                                    :
-                                    <button type="submit" className="btn btn-primary">Submit</button>
-                                }
-                            </form>
-                        </div>
-                    </div>
+
+        <div className="main">
+            <h1>Daily project</h1>
+            <h3>Ingrese sus credenciales</h3>
+            <form onSubmit={(e) => handleSubmit(e)}>
+                <label htmlFor="username">Email:</label>
+                <input 
+                    type="email" 
+                    id="username" 
+                    name="username" 
+                    
+                    placeholder="Ingrese email" 
+                    // required 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    
+                />
+                { useValidation(errors, 'email')}
+                <label htmlFor="password">Password:</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="Ingrese Password" 
+                    // required 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                />
+                { useValidation(errors, 'password')}
+                
+                { 
+                loading ? 
+                <Spinner />
+                :
+                <div className="wrap">
+                    <button type="submit">
+                        Submit
+                    </button>
                 </div>
-            </div>
+            }
+            </form>
         </div>
     )
 }

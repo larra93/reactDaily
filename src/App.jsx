@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom"
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 
 import  axios  from 'axios'
 import './App.css'
@@ -9,14 +9,7 @@ import { getConfig, BASE_URL } from "./helpers/config"
 import { AuthContext } from "./Components/context/authContext"
 import { useEffect, useState } from "react"
 import Login from "./Components/auth/Login"
-
-
-
-
-
-
-
-
+import ProtectedRoute from "./Components/ProtectedRoute/ProtectedRoute"
 
 function App() {
 
@@ -43,11 +36,12 @@ function App() {
   return (
     <AuthContext.Provider value={{ accessToken, setAccessToken, currentUser, setCurrentUser}}>
     <BrowserRouter>
-    <Header />
+    {currentUser && <Header />}
     <Routes>
-      <Route path="/" element={ <Home /> } />
+    <Route path="/" element={ <ProtectedRoute><Home /></ProtectedRoute> } />
       <Route path="/login" element={ <Login /> } />
       <Route path="/register" element={ <Register /> } />
+      <Route path="*" element={ <Navigate to="/login" /> } />
     </Routes>
   </BrowserRouter>
   </AuthContext.Provider>
