@@ -7,7 +7,7 @@ import useValidation from '../custom/useValidation'
 import Spinner from '../layouts/Spinner'
 import { AuthContext } from '../context/authContext'
 import './Login.css'
-
+import { Container, Typography, TextField, Button, Paper, Box } from '@mui/material'
 
 export default function Login() {
     const [email, setEmail] = useState('')
@@ -15,8 +15,7 @@ export default function Login() {
     const [errors, setErrors] = useState(null)
     const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
-    const { accessToken, setAccessToken, setCurrentUser} = useContext(AuthContext)
-
+    const { accessToken, setAccessToken, setCurrentUser } = useContext(AuthContext)
 
     useEffect(() => {
         if (accessToken) navigate('/')
@@ -26,15 +25,16 @@ export default function Login() {
         e.preventDefault()
         setErrors(null)
         setLoading(true)
-        const data = { email, password}
+        const data = { email, password }
 
         try {
             const response = await axios.post(`${BASE_URL}/user/login`, data)
             if (response.data.error) {
                 setLoading(false)
                 toast.error(response.data.error)
-            }else {
+            } else {
                 localStorage.setItem('currentToken', JSON.stringify(response.data.currentToken))
+                localStorage.setItem('currentUser', JSON.stringify(response.data.user))
                 setAccessToken(response.data.currentToken)
                 setCurrentUser(response.data.user)
                 setLoading(false)
@@ -53,47 +53,53 @@ export default function Login() {
     }
 
     return (
-
-        <div className="main">
-            <h1>Daily project</h1>
-            <h3>Ingrese sus credenciales</h3>
-            <form onSubmit={(e) => handleSubmit(e)}>
-                <label htmlFor="username">Email:</label>
-                <input 
-                    type="email" 
-                    id="username" 
-                    name="username" 
-                    
-                    placeholder="Ingrese email" 
-                    // required 
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value)} 
-                    
-                />
-                { useValidation(errors, 'email')}
-                <label htmlFor="password">Password:</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    placeholder="Ingrese Password" 
-                    // required 
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)} 
-                />
-                { useValidation(errors, 'password')}
-                
-                { 
-                loading ? 
-                <Spinner />
-                :
-                <div className="wrap">
-                    <button type="submit">
-                        Submit
-                    </button>
-                </div>
-            }
-            </form>
-        </div>
-    )
+        <Container maxWidth="xs">
+            <Paper elevation={3} sx={{ padding: 2, marginTop: 8 }}>
+                <Box sx={{ textAlign: 'center', marginBottom: 2 }}>
+                    <Typography variant="h5" component="h1">
+                        Iniciar sesión
+                    </Typography>
+                </Box>
+                <form onSubmit={handleSubmit}>
+                    <TextField
+                        margin="normal"
+                        fullWidth
+                        id="email"
+                        label="Correo electrónico"
+                        name="email"
+                        autoComplete="email"
+                        autoFocus
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                    {useValidation(errors, 'email')}
+                    <TextField
+                        margin="normal"
+                        fullWidth
+                        id="password"
+                        label="Contraseña"
+                        name="password"
+                        type="password"
+                        autoComplete="current-password"
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                    {useValidation(errors, 'password')}
+                    {
+                        loading ?
+                            <Spinner />
+                            :
+                            <div className="wrap">
+                                <Button
+                                    type="submit"
+                                    fullWidth
+                                    variant="contained"
+                                    sx={{ mt: 3, mb: 2 }}
+                                >
+                                    Iniciar sesión
+                                </Button>
+                            </div>
+                    }
+                </form>
+            </Paper>
+        </Container>
+    );
 }

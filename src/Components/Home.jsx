@@ -8,7 +8,7 @@ export default function Home() {
                 <div className="card">
                     <div className="card-body">
                         <h3 className="text-center mt-2">
-                            Welcome
+                            DASHBOARD
                         </h3>
                     </div>
                 </div>
