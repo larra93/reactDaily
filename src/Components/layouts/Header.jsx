@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BASE_URL, getConfig } from '../../helpers/config';
 import { toast } from 'react-toastify';
@@ -9,16 +9,22 @@ import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import Menu from '@mui/material/Menu';
-import MenuIcon from '@mui/icons-material/Menu';
-import Container from '@mui/material/Container';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
 import Avatar from '@mui/material/Avatar';
+import MenuIcon from '@mui/icons-material/Menu';
+import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import AdbIcon from '@mui/icons-material/Adb';
+import { Container } from '@mui/material';
 
 export default function Header() {
     const { accessToken, setAccessToken, currentUser, setCurrentUser } = useContext(AuthContext);
     const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [anchorElUser, setAnchorElUser] = useState(null);
 
     const logoutUser = async () => {
         try {
@@ -38,145 +44,117 @@ export default function Header() {
         }
     };
 
-    const [anchorElNav, setAnchorElNav] = React.useState(null);
-    const [anchorElUser, setAnchorElUser] = React.useState(null);
-
-    const handleOpenNavMenu = (event) => {
-        setAnchorElNav(event.currentTarget);
+    const handleDrawerToggle = () => {
+        setDrawerOpen(!drawerOpen);
     };
+
     const handleOpenUserMenu = (event) => {
         setAnchorElUser(event.currentTarget);
     };
 
-    const handleCloseNavMenu = () => {
-        setAnchorElNav(null);
-    };
-
-    const handleCloseUserMenu = (setting) => {
-        if (setting === 'Logout') {
-            logoutUser();
-        }
+    const handleCloseUserMenu = () => {
         setAnchorElUser(null);
     };
 
-    return (
-        <AppBar position="static">
-            <Container maxWidth="xl">
-                <Toolbar disableGutters>
-                    <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
-                    <Typography
-                        variant="h6"
-                        noWrap
-                        component={Link}
-                        to="/"
-                        sx={{
-                            mr: 2,
-                            display: { xs: 'none', md: 'flex' },
-                            fontFamily: 'monospace',
-                            fontWeight: 700,
-                            letterSpacing: '.3rem',
-                            color: 'inherit',
-                            textDecoration: 'none',
-                        }}
-                    >
-                        LOGO
-                    </Typography>
+    const handleUserMenuItemClick = (setting) => {
+        if (setting === 'Logout') {
+            logoutUser();
+        }
+        handleCloseUserMenu();
+    };
 
-                    <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+    return (
+        <>
+            <AppBar position="static">
+                <Container maxWidth="xl">
+                    <Toolbar disableGutters>
                         <IconButton
                             size="large"
-                            aria-label="account of current user"
-                            aria-controls="menu-appbar"
-                            aria-haspopup="true"
-                            onClick={handleOpenNavMenu}
+                            edge="start"
                             color="inherit"
+                            aria-label="menu"
+                            onClick={handleDrawerToggle}
+                            sx={{ mr: 2 }}
                         >
                             <MenuIcon />
                         </IconButton>
-                        <Menu
-                            id="menu-appbar"
-                            anchorEl={anchorElNav}
-                            anchorOrigin={{
-                                vertical: 'bottom',
-                                horizontal: 'left',
-                            }}
-                            keepMounted
-                            transformOrigin={{
-                                vertical: 'top',
-                                horizontal: 'left',
-                            }}
-                            open={Boolean(anchorElNav)}
-                            onClose={handleCloseNavMenu}
+                        <Typography
+                            variant="h6"
+                            noWrap
+                            component={Link}
+                            to="/"
                             sx={{
-                                display: { xs: 'block', md: 'none' },
+                                mr: 2,
+                                display: { xs: 'none', md: 'flex' },
+                                fontFamily: 'monospace',
+                                fontWeight: 700,
+                                letterSpacing: '.3rem',
+                                color: 'inherit',
+                                textDecoration: 'none',
                             }}
                         >
-                            {/* Agrega elementos del menú aquí */}
-                        </Menu>
-                    </Box>
-                    <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
-                    <Typography
-                        variant="h5"
-                        noWrap
-                        component={Link}
-                        to="/"
-                        sx={{
-                            mr: 2,
-                            display: { xs: 'flex', md: 'none' },
-                            flexGrow: 1,
-                            fontFamily: 'monospace',
-                            fontWeight: 700,
-                            letterSpacing: '.3rem',
-                            color: 'inherit',
-                            textDecoration: 'none',
-                        }}
-                    >
-                        LOGO
-                    </Typography>
-                    <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-                        <MenuItem component={Link} to="/" onClick={handleCloseNavMenu}>
-                            <Typography textAlign="center">Inicio</Typography>
-                        </MenuItem>
-                        <MenuItem component={Link} to="/contract" onClick={handleCloseNavMenu}>
-                            <Typography textAlign="center">Gestionar contratos</Typography>
-                        </MenuItem>
-                        <MenuItem component={Link} to="/users" onClick={handleCloseNavMenu}>
-                            <Typography textAlign="center">Gestionar usuarios</Typography>
-                        </MenuItem>
-                        <MenuItem component={Link} to="/users" onClick={handleCloseNavMenu}>
-                            <Typography textAlign="center">Gestionar Dailys</Typography>
-                        </MenuItem>
-                    </Box>
+                            LOGO
+                        </Typography>
 
-                    <Box sx={{ flexGrow: 0 }}>
-                        <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                            <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-                        </IconButton>
-                        <Menu
-                            sx={{ mt: '45px' }}
-                            id="menu-appbar"
-                            anchorEl={anchorElUser}
-                            anchorOrigin={{
-                                vertical: 'top',
-                                horizontal: 'right',
-                            }}
-                            keepMounted
-                            transformOrigin={{
-                                vertical: 'top',
-                                horizontal: 'right',
-                            }}
-                            open={Boolean(anchorElUser)}
-                            onClose={() => setAnchorElUser(null)}
-                        >
-                            {settings.map((setting) => (
-                                <MenuItem key={setting} onClick={() => handleCloseUserMenu(setting)}>
-                                    <Typography textAlign="center">{setting}</Typography>
-                                </MenuItem>
-                            ))}
-                        </Menu>
-                    </Box>
-                </Toolbar>
-            </Container>
-        </AppBar>
+                        <Box sx={{ flexGrow: 1 }} />
+
+                        <Box sx={{ flexGrow: 0 }}>
+                            <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                                <Avatar alt="User Avatar" src="/static/images/avatar/2.jpg" />
+                            </IconButton>
+                            <Menu
+                                sx={{ mt: '45px' }}
+                                id="menu-appbar"
+                                anchorEl={anchorElUser}
+                                anchorOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'right',
+                                }}
+                                keepMounted
+                                transformOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'right',
+                                }}
+                                open={Boolean(anchorElUser)}
+                                onClose={handleCloseUserMenu}
+                            >
+                                {settings.map((setting) => (
+                                    <MenuItem key={setting} onClick={() => handleUserMenuItemClick(setting)}>
+                                        <Typography textAlign="center">{setting}</Typography>
+                                    </MenuItem>
+                                ))}
+                            </Menu>
+                        </Box>
+                    </Toolbar>
+                </Container>
+            </AppBar>
+            <Drawer
+                anchor="left"
+                open={drawerOpen}
+                onClose={handleDrawerToggle}
+            >
+                <Box
+                    sx={{ width: 250 }}
+                    role="presentation"
+                    onClick={handleDrawerToggle}
+                    onKeyDown={handleDrawerToggle}
+                >
+                    <List>
+                        <ListItem component={Link} to="/" button key="Inicio">
+                            <ListItemText primary="Inicio" />
+                        </ListItem>
+                        <ListItem component={Link} to="/contract" button key="Gestionar contratos">
+                            <ListItemText primary="Gestionar contratos" />
+                        </ListItem>
+                        <ListItem component={Link} to="/users" button key="Gestionar usuarios">
+                            <ListItemText primary="Gestionar usuarios" />
+                        </ListItem>
+                        <ListItem component={Link} to="/dailys" button key="Gestionar Dailys">
+                            <ListItemText primary="Gestionar Dailys" />
+                        </ListItem>
+                    </List>
+                </Box>
+            </Drawer>
+        </>
     );
 }

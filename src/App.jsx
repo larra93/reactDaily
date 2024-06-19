@@ -12,6 +12,7 @@ import ProtectedRoute from "./Components/ProtectedRoute/ProtectedRoute"
 import ContractFormPage from "./pages/ContractFormPage"
 import ContractsPage from "./pages/ContractsPage"
 import UserPage from "./pages/UserPage"
+import UserFormPage from "./pages/UserFormPage"
 
 function App() {
     const [accessToken, setAccessToken] = useState(JSON.parse(localStorage.getItem('currentToken')))
@@ -46,6 +47,7 @@ function App() {
                     <Route path="/register" element={<ProtectedRoute><Register /></ProtectedRoute>} />
                     <Route path="/contract" element={<ProtectedRoute><ContractsPage /></ProtectedRoute>} />
                     <Route path="/contracts/create" element={<ProtectedRoute><ContractFormPage /></ProtectedRoute>} />
+                    <Route path="/users/create" element={<ProtectedRoute><UserFormPage /></ProtectedRoute>} />
                     <Route path="/users" element={<ProtectedRoute><UserPage /></ProtectedRoute>} />
                     <Route path="*" element={<Navigate to="/login" />} />
                 </Routes>
