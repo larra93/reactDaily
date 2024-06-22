@@ -48,6 +48,7 @@ function App() {
                     <Route path="/contract" element={<ProtectedRoute><ContractsPage /></ProtectedRoute>} />
                     <Route path="/contracts/create" element={<ProtectedRoute><ContractFormPage /></ProtectedRoute>} />
                     <Route path="/users/create" element={<ProtectedRoute><UserFormPage /></ProtectedRoute>} />
+                    <Route path="/users/edit/:id" element={<UserFormPage />} />
                     <Route path="/users" element={<ProtectedRoute><UserPage /></ProtectedRoute>} />
                     <Route path="*" element={<Navigate to="/login" />} />
                 </Routes>

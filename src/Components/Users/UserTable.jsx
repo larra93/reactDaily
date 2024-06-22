@@ -1,7 +1,14 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TablePagination } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 const UserTable = ({ usuarios, page, rowsPerPage, totalCount, handleChangePage, handleChangeRowsPerPage }) => {
+
+    const navigate = useNavigate();
+    
+    const handleEdit = (id) => {
+        navigate(`/users/edit/${id}`);
+    };
     return (
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -22,7 +29,11 @@ const UserTable = ({ usuarios, page, rowsPerPage, totalCount, handleChangePage, 
                                 {user.roles.map(role => role.name).join(', ')}
                             </TableCell>
                             <TableCell>
-                                <Button variant="contained" color="primary">Editar</Button>
+                                <Button variant="contained" 
+                                onClick={() => handleEdit(user.id)}
+                                color="primary">
+                                Editar
+                                </Button>
                             </TableCell>
                         </TableRow>
                     ))}
