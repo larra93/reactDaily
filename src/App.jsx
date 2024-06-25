@@ -1,35 +1,60 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
+import axios from 'axios'
 import './App.css'
+import Home from "./Components/Home"
+import Header from "./Components/layouts/Header"
+import Register from "./Components/auth/Register"
+import { getConfig, BASE_URL } from "./helpers/config"
+import { AuthContext } from "./Components/context/authContext"
+import { useEffect, useState } from "react"
+import Login from "./Components/auth/Login"
+import ProtectedRoute from "./Components/ProtectedRoute/ProtectedRoute"
+import ContractFormPage from "./pages/ContractFormPage"
+import ContractsPage from "./pages/ContractsPage"
+import UserPage from "./pages/UserPage"
+import UserFormPage from "./pages/UserFormPage"
 
 function App() {
-  const [count, setCount] = useState(0)
+    const [accessToken, setAccessToken] = useState(JSON.parse(localStorage.getItem('currentToken')))
+    const [currentUser, setCurrentUser] = useState(JSON.parse(localStorage.getItem('currentUser')))
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    useEffect(() => {
+        const fetchCurrentlyLoggedInUser = async () => {
+            try {
+                const response = await axios.get(`${BASE_URL}/user`, getConfig(accessToken))
+                setCurrentUser(response.data.user)
+                localStorage.setItem('currentUser', JSON.stringify(response.data.user))
+            } catch (error) {
+                if (error?.response?.status === 401) {
+                    localStorage.removeItem('currentToken')
+                    localStorage.removeItem('currentUser')
+                    setCurrentUser(null)
+                    setAccessToken('')
+                }
+                console.log(error)
+            }
+        }
+        if (accessToken) fetchCurrentlyLoggedInUser()
+    }, [accessToken])
+
+    return (
+        <AuthContext.Provider value={{ accessToken, setAccessToken, currentUser, setCurrentUser }}>
+            <BrowserRouter>
+                {currentUser && <Header />}
+                <Routes>
+                    <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<ProtectedRoute><Register /></ProtectedRoute>} />
+                    <Route path="/contract" element={<ProtectedRoute><ContractsPage /></ProtectedRoute>} />
+                    <Route path="/contracts/create" element={<ProtectedRoute><ContractFormPage /></ProtectedRoute>} />
+                    <Route path="/users/create" element={<ProtectedRoute><UserFormPage /></ProtectedRoute>} />
+                    <Route path="/users/edit/:id" element={<UserFormPage />} />
+                    <Route path="/users" element={<ProtectedRoute><UserPage /></ProtectedRoute>} />
+                    <Route path="*" element={<Navigate to="/login" />} />
+                </Routes>
+            </BrowserRouter>
+        </AuthContext.Provider>
+    )
 }
 
 export default App
