@@ -75,7 +75,7 @@ const UserForm = ({ onSubmit, roles, user }) => {
         error={!!errors.password}
         helperText={errors.password?.message}
       />
-      <FormControl md={{ m: 1, width: 300 }}>
+      {/* <FormControl md={{ m: 1, width: 300 }}>
         <InputLabel id="demo-multiple-chip-label">Roles</InputLabel>
         <Controller
           name="roles"
@@ -114,7 +114,7 @@ const UserForm = ({ onSubmit, roles, user }) => {
           )}
         />
         {errors.roles && <p style={{ color: 'red' }}>{errors.roles.message}</p>}
-      </FormControl>
+      </FormControl> */}
       <Button type="submit" variant="contained" color="primary">
         {user ? 'Actualizar usuario' : 'Crear usuario'}
       </Button>
