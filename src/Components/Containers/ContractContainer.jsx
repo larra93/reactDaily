@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ContractTable from '../Contract/ContractTable';
 import { Box, Button } from '@mui/material';
 import { Link, Navigate } from 'react-router-dom';
+import axios from 'axios';
+import { BASE_URL } from '../../helpers/config';
 
 
 const ContractContainer = () => {
@@ -11,6 +13,22 @@ const ContractContainer = () => {
         { id: 2, name: 'Contrato B', nsap: '67890', den: 'DEN-002', project: 'Proyecto Y', api: 'API-002', contractorCompany: 'Empresa B', contractorCompanyRut: '98765432-1', codelcoManager: 'Encargado C', secondaryReviewer: 'Revisor B', contractorManager: 'Encargado D', cc: 'CC-002', contractAdmin: 'Admin B' },
         { id: 3, name: 'Contrato C', nsap: '11223', den: 'DEN-003', project: 'Proyecto Z', api: 'API-003', contractorCompany: 'Empresa C', contractorCompanyRut: '11122233-4', codelcoManager: 'Encargado E', secondaryReviewer: 'Revisor C', contractorManager: 'Encargado F', cc: 'CC-003', contractAdmin: 'Admin C' },
     ]);
+
+    useEffect(() => {
+        fetchContracts();
+    }, []);
+
+    
+    const fetchContracts = async () => {
+        try {
+            const response = await axios.get(`${BASE_URL}/contracts`);
+            console.log('contratos', response.data)
+            // setUsers(response.data.data);
+            // setTotalCount(response.data.total);
+        } catch (error) {
+            console.error('Error al obtener los contratos:', error);
+        }
+    };
 
    
 

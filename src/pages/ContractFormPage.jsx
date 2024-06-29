@@ -2,8 +2,12 @@ import React, { useEffect, useState } from 'react';
 import ContractForm from '../Components/Contract/ContractForm';
 import axios from 'axios';
 import { BASE_URL } from '../helpers/config';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const ContractFormPage = () => {
+
+  const navigate = useNavigate(); 
   const [users, setUsers] = useState([]);
   const [companies, setCompanies] = useState([]);
 
@@ -32,10 +36,23 @@ const ContractFormPage = () => {
     fetchCompanies();
   }, []);
 
-  const handleCreateContract = (data) => {
-    
-    console.log('Crear contrato', data);
-    
+  const handleCreateContract = async (data) => {
+    try {      
+      const response = await axios.post(`${BASE_URL}/contracts`, data);
+      toast.success('Contrato creado exitosamente');
+      // console.log('Contrato creado:', response.data);
+      
+      navigate('/contracts');
+  } catch (error) {
+      if (error.response && error.response.status === 422) {
+          const errors = error.response.data.errors;
+          Object.keys(errors).forEach(key => {
+              toast.error(errors[key].join(', '));
+          });
+      } else {
+          toast.error('Error al crear contrato');
+      }
+  }
   };
 
   return (
