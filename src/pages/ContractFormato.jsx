@@ -1,11 +1,14 @@
 import React from 'react';
-import Box from '@mui/material/Box';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepButton from '@mui/material/StepButton';
-import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { Link } from 'react-router-dom';
+import { Grid, TextField, Button, Box, FormControl, InputLabel, Select, MenuItem, OutlinedInput, Chip, Checkbox, FormControlLabel, IconButton, Tooltip } from '@mui/material';
+import Personal from '../Components/Contract/PagesEstructure/TablePersonal'
+import Maquinarias from '../Components/Contract/PagesEstructure/TablePersonal'
+import Interferencias from '../Components/Contract/PagesEstructure/TablePersonal'
+
 
 
 const steps = ['Select campaign settings', 'Create an ad group', 'Create an ad'];
@@ -63,11 +66,11 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
   const formContent = (step) => {
     switch(step) {
       case 0:
-        return <AccountDetails formik={formik} />;
+        return <Personal  />;
       case 1:
-        return <PersonalInfo formik={formik} />;
+        return <Maquinarias  />;
       case 2:
-        return <ReviewInfo formik={formik} />;
+        return <Interferencias  />;
       default:
         return <div>404: Not Found</div>
     }
@@ -102,7 +105,7 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
       <h2>Crear Contrato</h2>
       <Box
         component="form"
-        onSubmit=""
+       // onSubmit=""
         sx={{ width: '90%', margin: '0 auto' }}
       >
 
