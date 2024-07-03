@@ -58,7 +58,8 @@ const UserFormPage = () => {
                     toast.error(errors[key].join(', '));
                 });
             } else {
-                toast.error('Error al crear/actualizar el usuario');
+                const action = id ? 'actualizar' : 'crear';
+                toast.error(`Error al ${action} usuario`);
             }
         }
     };

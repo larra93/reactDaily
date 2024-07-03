@@ -45,10 +45,11 @@ function App() {
                     <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<ProtectedRoute><Register /></ProtectedRoute>} />
-                    <Route path="/contract" element={<ProtectedRoute><ContractsPage /></ProtectedRoute>} />
+                    <Route path="/contracts" element={<ProtectedRoute><ContractsPage /></ProtectedRoute>} />
                     <Route path="/contracts/create" element={<ProtectedRoute><ContractFormPage /></ProtectedRoute>} />
+                    <Route path="/contracts/edit/:id" element={<ProtectedRoute><ContractFormPage /></ProtectedRoute>} />
                     <Route path="/users/create" element={<ProtectedRoute><UserFormPage /></ProtectedRoute>} />
-                    <Route path="/users/edit/:id" element={<UserFormPage />} />
+                    <Route path="/users/edit/:id" element={<ProtectedRoute><UserFormPage /></ProtectedRoute>} />
                     <Route path="/users" element={<ProtectedRoute><UserPage /></ProtectedRoute>} />
                     <Route path="*" element={<Navigate to="/login" />} />
                 </Routes>
