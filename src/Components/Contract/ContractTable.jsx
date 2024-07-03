@@ -1,13 +1,23 @@
 import React from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TablePagination } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
-const ContractTable = ({ contracts }) => {
+const ContractTable = ({ contracts, page, rowsPerPage, totalCount, handleChangePage, handleChangeRowsPerPage, onDeleteContract }) => {
+    const navigate = useNavigate();
+
+    const handleEdit = (id) => {
+        navigate(`/contracts/edit/${id}`);
+    };
+
+    const handleDelete = async (id) => {
+        await onDeleteContract(id);
+    };
+
     return (
         <TableContainer component={Paper}>
-           <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
                     <TableRow>
-                        <TableCell>ID</TableCell>
                         <TableCell>Nombre contrato</TableCell>
                         <TableCell>N SAP</TableCell>
                         <TableCell>DEN</TableCell>
@@ -16,37 +26,73 @@ const ContractTable = ({ contracts }) => {
                         <TableCell>Empresa contratista</TableCell>
                         <TableCell>Rut Empresa contratista</TableCell>
                         <TableCell>Encargados Codelco(Daily)</TableCell>
-                        <TableCell>Revisor Secundario Codelco</TableCell>
                         <TableCell>Encargado Contratista(Daily)</TableCell>
-                        <TableCell>CC</TableCell>
-                        <TableCell>Admin de contrato</TableCell>
-                        {/* <TableCell>Acciones</TableCell> */}
+                        <TableCell>Visualizador</TableCell>
+                        <TableCell>Administrador de terreno</TableCell>
+                        <TableCell>Acciones</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
                     {contracts.map((contract) => (
                         <TableRow key={contract.id}>
-                            <TableCell>{contract.id}</TableCell>
-                            <TableCell>{contract.name}</TableCell>
-                            <TableCell>{contract.nsap}</TableCell>
-                            <TableCell>{contract.den}</TableCell>
-                            <TableCell>{contract.project}</TableCell>
-                            <TableCell>{contract.api}</TableCell>
-                            <TableCell>{contract.contractorCompany}</TableCell>
-                            <TableCell>{contract.contractorCompanyRut}</TableCell>
-                            <TableCell>{contract.codelcoManager}</TableCell>
-                            <TableCell>{contract.secondaryReviewer}</TableCell>
-                            <TableCell>{contract.contractorManager}</TableCell>
-                            <TableCell>{contract.cc}</TableCell>
-                            <TableCell>{contract.contractAdmin}</TableCell>
+                            <TableCell>{contract.nombre_contrato}</TableCell>
+                            <TableCell>{contract.NSAP}</TableCell>
+                            <TableCell>{contract.DEN}</TableCell>
+                            <TableCell>{contract.proyecto}</TableCell>
+                            <TableCell>{contract.API}</TableCell>
+                            <TableCell>{contract.empresa_contratista}</TableCell>
+                            <TableCell>{contract.rut_contratista}</TableCell>
+                             <TableCell>
+                                {contract.encargadoCodelco.map((encargado, index) => (
+                                    <span key={index}>
+                                        {encargado.name}
+                                        {index !== contract.encargadoCodelco.length - 1 && ', '}
+                                    </span>
+                                ))}
+                            </TableCell>
                             <TableCell>
-                                <Button variant="contained" color="primary">Editar</Button>
-                                
+                                {contract.encargadoContratista.map((encargado, index) => (
+                                    <span key={index}>
+                                        {encargado.name}
+                                        {index !== contract.encargadoContratista.length - 1 && ', '}
+                                    </span>
+                                ))}
+                            </TableCell>
+                            <TableCell>
+                                {contract.visualizador.map((item, index) => (
+                                    <span key={index}>
+                                        {item.name}
+                                        {index !== contract.visualizador.length - 1 && ', '}
+                                    </span>
+                                ))}
+                            </TableCell>
+                            <TableCell>
+                                {contract.adminTerreno.map((item, index) => (
+                                    <span key={index}>
+                                        {item.name}
+                                        {index !== contract.adminTerreno.length - 1 && ', '}
+                                    </span>
+                                ))}
+                            </TableCell>
+                            <TableCell>
+                                <Button variant="contained" onClick={() => handleEdit(contract.id)} color="primary">Editar</Button>
+                                <Button variant="contained" onClick={() => handleDelete(contract.id)} color="primary">Eliminar</Button>
                             </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
             </Table>
+            <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={totalCount}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                labelRowsPerPage="Filas por página"
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`}
+            />
         </TableContainer>
     );
 };

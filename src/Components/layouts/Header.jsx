@@ -143,7 +143,7 @@ export default function Header() {
                         <ListItem component={Link} to="/" button key="Inicio">
                             <ListItemText primary="Inicio" />
                         </ListItem>
-                        <ListItem component={Link} to="/contract" button key="Gestionar contratos">
+                        <ListItem component={Link} to="/contracts" button key="Gestionar contratos">
                             <ListItemText primary="Gestionar contratos" />
                         </ListItem>
                         <ListItem component={Link} to="/users" button key="Gestionar usuarios">
