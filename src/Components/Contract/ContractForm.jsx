@@ -11,6 +11,7 @@ const ContractForm = ({ onSubmit, users, companies, contract }) => {
       revisorCC: [],
       revisorOtraArea: [],
       encargadoContratista: [],
+      encargadoCodelco: [],
       adminDeTerreno: [],
       visualizador: [],
       revisorPYCRequired: false,
@@ -47,8 +48,10 @@ const ContractForm = ({ onSubmit, users, companies, contract }) => {
   const handleVisualizadorChange = (selected) => {
     setValue('visualizador', selected); 
   };
+  const handleEncargadoCodelcoChange = (selected) => {
+    setValue('encargadoCodelco', selected); 
+  };
   const customSubmit = (data) => {
-    // console.log('data', data)
     onSubmit({ ...data, created_by: currentUser.id  });
   };
 
@@ -71,10 +74,8 @@ const ContractForm = ({ onSubmit, users, companies, contract }) => {
       setValue('revisorPYCRequired', contract.revisorPYCRequired); 
       setValue('revisorCCRequired', contract.revisorCCRequired); 
       setValue('revisorOtraAreaRequired', contract.revisorOtraAreaRequired); 
-      
-    
+      setValue('encargadoCodelco', contract.encargadoCodelco.map(user => user.id));
 
-      
     }
   }, [contract, setValue]);
 
@@ -142,8 +143,6 @@ const ContractForm = ({ onSubmit, users, companies, contract }) => {
                   labelId="company-label"
                   id="company"
                   {...field}
-                  // defaultValue='aa'
-                  // value={empresaContratista}
                   input={<OutlinedInput label="Empresa contratista" />}
                 >
                   {companies.map((company) => (
@@ -189,6 +188,40 @@ const ContractForm = ({ onSubmit, users, companies, contract }) => {
               )}
             />
             {errors.encargadoContratista && <p style={{ color: 'red' }}>{errors.encargadoContratista.message}</p>}
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+        <FormControl fullWidth>
+            <InputLabel id="adminDeContrato-field-label">Encargados Codelco (Daily)</InputLabel>
+            <Controller
+              name="encargadoCodelco"
+              control={control}
+              rules={{ required: 'El campo no puede estar vacío' }}
+              render={({ field }) => (
+                <Select
+                  labelId="encargadoCodelco-field-label"
+                  id="encargadoCodelco"
+                  {...field}
+                  multiple
+                  input={<OutlinedInput label="encargadoCodelco" />}
+                  renderValue={(selected) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {selected.map((value) => (
+                        <Chip key={value} label={users.find(user => user.id === value)?.name} />
+                      ))}
+                    </Box>
+                  )}
+                  onChange={(e) => handleEncargadoCodelcoChange(e.target.value)}
+                >
+                  {users.map((user) => (
+                    <MenuItem key={user.id} value={user.id}>
+                      {user.name} ({user.email})
+                    </MenuItem>
+                  ))}
+                </Select>
+              )}
+            />
+            {errors.encargadoCodelco && <p style={{ color: 'red' }}>{errors.encargadoCodelco.message}</p>}
           </FormControl>
         </Grid>
         <Grid item xs={12} sm={6}>
