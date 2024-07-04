@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
-import UserTable from '../Users/UserTable';
+import UserTable from '../../Components/Containers/Configurar/Users/UserTable';
 import axios from 'axios';
 import { BASE_URL } from '../../helpers/config';
 
-const UserContainer = () => {
+const UserPage = () => {
     const [users, setUsers] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -33,7 +33,6 @@ const UserContainer = () => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
-
     return (
         <div>
             <h2>Administrar Usuarios</h2>
@@ -52,4 +51,4 @@ const UserContainer = () => {
     );
 };
 
-export default UserContainer;
+export default UserPage;

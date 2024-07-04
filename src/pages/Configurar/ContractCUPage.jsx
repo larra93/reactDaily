@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import ContractForm from '../Components/Contract/ContractForm';
+import ContractForm from '../../Components/Containers/Configurar/Contracts/ContractCUForm';
 import axios from 'axios';
-import { BASE_URL } from '../helpers/config';
+import { BASE_URL } from '../../helpers/config';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 

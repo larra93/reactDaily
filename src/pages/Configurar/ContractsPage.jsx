@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import ContractTable from '../Contract/ContractTable';
+import React, { useEffect, useState }  from 'react';
+import ContractTable from '../../Components/Containers/Configurar/Contracts/ContractTable';
 import { Box, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { BASE_URL } from '../../helpers/config';
 import { toast } from 'react-toastify';
 
-const ContractContainer = () => {
+const ContractsPage = () => {
     const [contracts, setContracts] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -66,4 +66,4 @@ const ContractContainer = () => {
     );
 };
 
-export default ContractContainer;
+export default ContractsPage;

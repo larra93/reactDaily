@@ -4,6 +4,7 @@ import { BASE_URL, getConfig } from '../../helpers/config';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { AuthContext } from '../context/authContext';
+import CssBaseline from '@mui/material/CssBaseline';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -11,17 +12,47 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
+import Divider from '@mui/material/Divider';
 import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
 import Avatar from '@mui/material/Avatar';
 import MenuIcon from '@mui/icons-material/Menu';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { Container } from '@mui/material';
 
+import ListItemText from '@mui/material/ListItemText';
+import InboxIcon from '@mui/icons-material/MoveToInbox';
+import HomeIcon from '@mui/icons-material/home';
+import MailIcon from '@mui/icons-material/Mail';
+import BadgeIcon from '@mui/icons-material/Badge';
+import GroupIcon from '@mui/icons-material/Group';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import ConstructionIcon from '@mui/icons-material/Construction';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import Collapse from '@mui/material/Collapse';
+import AGlogo from '../../assets/img/AG.png'
+import DTSlogo from '../../assets/img/DTS.png'
+
+
+
+
+
+
 export default function Header() {
     const { accessToken, setAccessToken, currentUser, setCurrentUser } = useContext(AuthContext);
     const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+
+    const [openConfigurar, setOpenConfigurar] = React.useState(true);
+
+    const handleClickConfigurar = () => {
+
+        setOpenConfigurar(!openConfigurar);
+
+    };
 
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [anchorElUser, setAnchorElUser] = useState(null);
@@ -62,10 +93,14 @@ export default function Header() {
         }
         handleCloseUserMenu();
     };
+    const drawerWidth = 240;
 
     return (
-        <>
-            <AppBar position="static">
+        <Box sx={{ display: 'flex', backgroundColor: '#39383F' }}>
+            <CssBaseline />
+            <AppBar
+                position="relative" sx={{ backgroundColor: '#39383F' }}
+            >
                 <Container maxWidth="xl">
                     <Toolbar disableGutters>
                         <IconButton
@@ -93,14 +128,40 @@ export default function Header() {
                                 textDecoration: 'none',
                             }}
                         >
-                            LOGO
+                            <Box
+                                component="img"
+                                sx={{
+                             
+                                    height: 50,
+                                    width: 150,
+                                    maxHeight: { xs: 233, md: 167 },
+                                    maxWidth: { xs: 350, md: 250 },
+                                }}
+                                alt="The house from the offer."
+                                src={AGlogo}
+                            />
+                           
                         </Typography>
+
+                        <Box sx={{ flexGrow: 2, display: 'flex', justifyContent: 'center' }}>
+                                <Box
+                                    component="img"
+                                    sx={{
+                                        height: 60,
+                                        width: 120,
+                                        maxHeight: { xs: 233, md: 167 },
+                                        maxWidth: { xs: 350, md: 250 },
+                                    }}
+                                    alt="The house from the offer."
+                                    src={DTSlogo}
+                                />
+                            </Box>
 
                         <Box sx={{ flexGrow: 1 }} />
 
                         <Box sx={{ flexGrow: 0 }}>
                             <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                                <Avatar alt="User Avatar" src="/static/images/avatar/2.jpg" />
+                                <AccountCircleIcon sx={{ fontSize: '3rem', color: 'white' }} />
                             </IconButton>
                             <Menu
                                 sx={{ mt: '45px' }}
@@ -133,28 +194,66 @@ export default function Header() {
                 open={drawerOpen}
                 onClose={handleDrawerToggle}
             >
-                <Box
-                    sx={{ width: 250 }}
-                    role="presentation"
-                    onClick={handleDrawerToggle}
-                    onKeyDown={handleDrawerToggle}
-                >
-                    <List>
-                        <ListItem component={Link} to="/" button key="Inicio">
-                            <ListItemText primary="Inicio" />
+                <Box sx={{ width: 250, backgroundColor: '#39383F', height: '100%', color: 'white' }} role="presentation">
+                    <List >
+                        <ListItem component={Link} to="/" key="Inicio" sx={{ color: 'white' }}>
+                            <ListItemButton>
+                                <ListItemIcon sx={{ color: 'white' }}>
+                                    <HomeIcon />
+                                </ListItemIcon>
+                                <ListItemText primary="Inicio" />
+                            </ListItemButton>
                         </ListItem>
-                        <ListItem component={Link} to="/contracts" button key="Gestionar contratos">
-                            <ListItemText primary="Gestionar contratos" />
-                        </ListItem>
-                        <ListItem component={Link} to="/users" button key="Gestionar usuarios">
-                            <ListItemText primary="Gestionar usuarios" />
-                        </ListItem>
-                        <ListItem component={Link} to="/dailys" button key="Gestionar Dailys">
-                            <ListItemText primary="Gestionar Dailys" />
-                        </ListItem>
+
+                        {/* COMIENZA lista de CONFIGURAR */}
+
+                        <ListItemButton onClick={handleClickConfigurar}>
+                            <ListItemIcon sx={{ color: 'white' }}>
+                                <ConstructionIcon />
+                            </ListItemIcon>
+                            <ListItemText primary="Configurar" />
+                            {openConfigurar ? <ExpandLess /> : <ExpandMore />}
+                        </ListItemButton>
+
+
+                        <Collapse in={openConfigurar} timeout="auto" unmountOnExit>
+                            <List component="div" disablePadding sx={{ color: 'white', backgroundColor: '#312d2d' }}>
+                                <ListItem component={Link} to="/contracts" key="Gestionar contratos" sx={{ color: 'white' }}>
+                                    <ListItemButton sx={{ pl: 4 }}>
+                                        <ListItemIcon sx={{ color: 'white' }}>
+                                            <BadgeIcon />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Gestionar contratos" />
+                                    </ListItemButton>
+                                </ListItem>
+                                <ListItem component={Link} to="/users" button key="Gestionar usuarios" sx={{ color: 'white' }}>
+                                    <ListItemButton sx={{ pl: 4 }}>
+                                        <ListItemIcon sx={{ color: 'white' }}>
+                                            <GroupIcon />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Gestionar usuarios" />
+                                    </ListItemButton>
+                                </ListItem>
+                                <ListItem component={Link} to="/dailys" button key="Gestionar Dailys" sx={{ color: 'white' }}>
+                                    <ListItemButton sx={{ pl: 4 }}>
+                                        <ListItemIcon sx={{ color: 'white' }}>
+                                            <AssignmentIcon />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Gestionar Dailys" />
+                                    </ListItemButton>
+                                </ListItem>
+
+
+                            </List>
+                        </Collapse>
+
+                        {/* TERMINA lista de CONFIGURAR */}
+
+
+
                     </List>
                 </Box>
             </Drawer>
-        </>
+        </Box>
     );
 }

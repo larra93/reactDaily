@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import UserForm from '../Components/Users/UserForm';
+import UserForm from '../../Components/Containers/Configurar/Users/UserForm';
 import axios from 'axios';
-import { BASE_URL } from '../helpers/config';
+import { BASE_URL } from '../../helpers/config';
 import { toast } from 'react-toastify';
 import { useNavigate, useParams } from 'react-router-dom';
 

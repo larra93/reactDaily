@@ -5,9 +5,9 @@ import StepButton from '@mui/material/StepButton';
 import Typography from '@mui/material/Typography';
 import { Link } from 'react-router-dom';
 import { Grid, TextField, Button, Box, FormControl, InputLabel, Select, MenuItem, OutlinedInput, Chip, Checkbox, FormControlLabel, IconButton, Tooltip } from '@mui/material';
-import Personal from '../Components/Contract/PagesEstructure/TablePersonal'
-import Maquinarias from '../Components/Contract/PagesEstructure/TablePersonal'
-import Interferencias from '../Components/Contract/PagesEstructure/TablePersonal'
+import Personal from '../../Components/Containers/Configurar/Contracts/PagesEstructure/TablePersonal'
+import Maquinarias from '../../Components/Containers/Configurar/Contracts/PagesEstructure/TablePersonal'
+import Interferencias from '../../Components/Containers/Configurar/Contracts/PagesEstructure/TablePersonal'
 
 
 

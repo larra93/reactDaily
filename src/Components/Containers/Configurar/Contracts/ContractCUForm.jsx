@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Grid, TextField, Button, Box, FormControl, InputLabel, Select, MenuItem, OutlinedInput, Chip, Checkbox, FormControlLabel } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
-import { AuthContext } from '../context/authContext';
+import { AuthContext } from '../../../context/authContext';
 
 import { Link } from 'react-router-dom';
 
