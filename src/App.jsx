@@ -48,7 +48,7 @@ function App() {
                     <Route path="/register" element={<ProtectedRoute><Register /></ProtectedRoute>} />
                     <Route path="/contracts" element={<ProtectedRoute><ContractsPage /></ProtectedRoute>} />
                     <Route path="/contracts/create" element={<ProtectedRoute><ContractFormPage /></ProtectedRoute>} />
-                    <Route path="/contracts/formato" element={<ProtectedRoute><ContractFormato /></ProtectedRoute>} />
+                    <Route path="/contracts/formato/:id" element={<ProtectedRoute><ContractFormato /></ProtectedRoute>} />
                     <Route path="/contracts/edit/:id" element={<ProtectedRoute><ContractFormPage /></ProtectedRoute>} />
                     <Route path="/users/create" element={<ProtectedRoute><UserFormPage /></ProtectedRoute>} />
                     <Route path="/users/edit/:id" element={<ProtectedRoute><UserFormPage /></ProtectedRoute>} />

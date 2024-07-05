@@ -87,9 +87,9 @@ const ContractForm = ({ onSubmit, users, companies, contract }) => {
       onSubmit={handleSubmit(customSubmit)}
       sx={{ width: '90%', margin: '0 auto' }}
     >
-<Box display="flex" justifyContent="flex-end" mb={2}> 
-                <Button type="submit" variant="contained" color="primary" component={Link} to="/contracts/formato">Editar Formato Daily</Button>
-            </Box>
+      <Box display="flex" justifyContent="flex-end" mb={2}> 
+        <Button type="submit" variant="contained" color="primary" component={Link} to={`/contracts/formato/${contract.id}`}>Editar Formato Daily</Button>
+      </Box>
             
 
       <Grid container spacing={2}>
