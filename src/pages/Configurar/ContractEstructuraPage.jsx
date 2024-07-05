@@ -87,7 +87,7 @@ const handleStepClick = (index) => {
     setCompleted({});
   };
 
-  const formContent = (step) => { debugger
+  const formContent = (step) => {
     switch(step) {
       case 0:
         return <Personal  />;
