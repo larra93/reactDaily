@@ -5,9 +5,7 @@ import StepButton from '@mui/material/StepButton';
 import Typography from '@mui/material/Typography';
 import { Link, useParams } from 'react-router-dom';
 import { Grid, TextField, Button, Box, FormControl, InputLabel, Select, MenuItem, OutlinedInput, Chip, Checkbox, FormControlLabel, IconButton, Tooltip } from '@mui/material';
-import Personal from '../../Components/Containers/Configurar/Contracts/PagesEstructure/TablePersonal'
-import Maquinarias from '../../Components/Containers/Configurar/Contracts/PagesEstructure/TablePersonal'
-import Interferencias from '../../Components/Containers/Configurar/Contracts/PagesEstructure/TablePersonal'
+import TableEstructure from '../../Components/Containers/Configurar/Contracts/PagesEstructure/TableEstructure'
 import axios from 'axios';
 import { BASE_URL } from '../../helpers/config';
 
@@ -46,8 +44,9 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
 const fetchStepsAndFields = async () => {
   try {
       const response = await axios.get(`${BASE_URL}/contracts/${id}/dailySheet`)
+
       setSteps(response.data.steps);
-      console.log('response', response.data.steps)
+     // console.log('response', response.data.steps)
   } catch (error) {
       console.error('Error al obtener pasos y campos:', error);
   }
@@ -72,6 +71,7 @@ const handleStepClick = (index) => {
   };
 
   const handleStep = (step) => () => {
+    
     setActiveStep(step);
   };
 
@@ -88,16 +88,10 @@ const handleStepClick = (index) => {
   };
 
   const formContent = (step) => {
-    switch(step) {
-      case 0:
-        return <Personal  />;
-      case 1:
-        return <Maquinarias  />;
-      case 2:
-        return <Interferencias  />;
-      default:
-        return <div>404: Not Found</div>
-    }
+    
+        return <TableEstructure  data={steps[step]} idContract = {id} />;
+
+    
   };
 
   const stepStyle = {
@@ -125,15 +119,16 @@ const handleStepClick = (index) => {
   }
 
   return (
-    <div>
-      <h2>Crear Contrato</h2>
+    <Box
+   // onSubmit=""
+    sx={{ width: '90%', margin: '0 auto' }}
+  >
+      <h2>Modificar Estructura Daily</h2>
       <Box
         component="form"
        // onSubmit=""
-        sx={{ width: '90%', margin: '0 auto' }}
+        sx={{ width: '95%', margin: '0 auto' }}
       >
-
-
         <Box sx={{ width: '100%' }}>
           <Stepper nonLinear activeStep={activeStep} >
             {steps.map((label, index) => (
@@ -157,9 +152,7 @@ const handleStepClick = (index) => {
               </React.Fragment>
             ) : (
               <React.Fragment>
-                <Typography sx={{ mt: 2, mb: 1, py: 1 }}>
-                  Step {activeStep + 1}
-                </Typography>
+
                 <Grid
                   item
                   xs={12}
@@ -198,7 +191,7 @@ const handleStepClick = (index) => {
           </div>
         </Box>
       </Box>
-    </div>
+    </Box>
   );
 }
 

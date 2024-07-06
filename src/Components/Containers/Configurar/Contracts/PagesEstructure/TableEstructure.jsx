@@ -23,114 +23,86 @@ import {
 } from '@tanstack/react-query';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { BASE_URL } from '../../../../../helpers/config';
+import axios from 'axios';
 
-//nested data is ok, see accessorKeys in ColumnDef below
-const data = [
-  {
-    id:1,
-      firstName: 'John',
-      lastName: 'Doe',
-   
-    address: '261 Erdman Ford',
-    city: 'East Daphne',
-    state: 'Kentucky',
-  },
-  {
-   id:2,
-      firstName: 'Jane',
-      lastName: 'Doe',
-   
-    address: '769 Dominic Grove',
-    city: 'Columbus',
-    state: 'Ohio',
-  },
-  {
-    id:3,
-      firstName: 'Joe',
-      lastName: 'Doe',
- 
-    address: '566 Brakus Inlet',
-    city: 'South Linda',
-    state: 'West Virginia',
-  },
-  {
-    id:4,
-      firstName: 'Kevin',
-      lastName: 'Vandy',
 
-    address: '722 Emie Stream',
-    city: 'Lincoln',
-    state: 'Nebraska',
-  },
-  {
-    id:5,
-      firstName: 'Joshua',
-      lastName: 'Rolluffs',
-
-    address: '32188 Larkin Turnpike',
-    city: 'Charleston',
-    state: 'South Carolina',
-  },
-];
-
-const usStates = [
-  'Alabama',
-  'Alaska',
-  'Arizona',
+//list of field types
+const ListTypes = [
+  'text',
+  'integer',
+  'list',
+  'hour',
+  'date'
 ];
 
 
-const TableP = () => {
+const TableP = ({ fields, idSheet, idContract }) => {
   const [validationErrors, setValidationErrors] = useState({});
+
+
+var data = fields
+var datafetched = fields 
+const idSheet2 = idSheet
+const idContract2 = idContract
 
   const columns = useMemo(
     () => [
+
       {
-        accessorKey: 'id',
-        header: 'Id',
-        enableEditing: false,
-        size: 80,
-      },
-      {
-        accessorKey: 'firstName',
-        header: 'First Name',
+        accessorKey: 'name',
+        header: 'Nombre Columna',
         muiEditTextFieldProps: {
           required: true,
-          error: !!validationErrors?.firstName,
-          helperText: validationErrors?.firstName,
-          //remove any previous validation errors when user focuses on the input
+          error: !!validationErrors?.name,
+          helperText: validationErrors?.name,
+          //remove any previous validation errors when Field focuses on the input
           onFocus: () =>
             setValidationErrors({
               ...validationErrors,
-              firstName: undefined,
+              name: undefined,
             }),
           //optionally add validation checking for onBlur or onChange
         },
       },
       {
-        accessorKey: 'lastName',
-        header: 'Last Name',
+        accessorKey: 'description',
+        header: 'Descripción',
         muiEditTextFieldProps: {
           required: true,
-          error: !!validationErrors?.lastName,
-          helperText: validationErrors?.lastName,
-          //remove any previous validation errors when user focuses on the input
+          error: !!validationErrors?.description,
+          helperText: validationErrors?.description,
+          //remove any previous validation errors when Field focuses on the input
           onFocus: () =>
             setValidationErrors({
               ...validationErrors,
-              lastName: undefined,
+              description: undefined,
             }),
         },
       },
       {
-        accessorKey: 'state',
-        header: 'State',
+        accessorKey: 'field_type',
+        header: 'Tipo de Campo',
         editVariant: 'select',
-        editSelectOptions: usStates,
+        editSelectOptions: ListTypes,
         muiEditTextFieldProps: {
           select: true,
-          error: !!validationErrors?.state,
-          helperText: validationErrors?.state,
+          error: !!validationErrors?.field_type,
+          helperText: validationErrors?.field_type,
+        },
+      }, {
+        accessorKey: 'step',
+        header: 'Orden',
+        muiEditTextFieldProps: {
+          required: true,
+          error: !!validationErrors?.description,
+          helperText: validationErrors?.description,
+          //remove any previous validation errors when Field focuses on the input
+          onFocus: () =>
+            setValidationErrors({
+              ...validationErrors,
+              description: undefined,
+            }),
         },
       },
     ],
@@ -138,50 +110,54 @@ const TableP = () => {
   );
 
   //call CREATE hook
-  const { mutateAsync: createUser, isPending: isCreatingUser } =
-    useCreateUser();
+  const { mutateAsync: createField, isPending: isCreatingField } =
+    useCreateField();
+
   //call READ hook
   const {
-    data: fetchedUsers = [],
-    isError: isLoadingUsersError,
-    isFetching: isFetchingUsers,
-    isLoading: isLoadingUsers,
-  } = useGetUsers();
+    data: fetchedFields = datafetched,
+    isError: isLoadingFieldsError,
+    isFetching: isFetchingFields,
+    isLoading: isLoadingFields,
+  } = useGetFields(idSheet2, idContract2);
+
+
   //call UPDATE hook
-  const { mutateAsync: updateUser, isPending: isUpdatingUser } =
-    useUpdateUser();
+  const { mutateAsync: updateField, isPending: isUpdatingField } =
+    useUpdateField();
+
   //call DELETE hook
-  const { mutateAsync: deleteUser, isPending: isDeletingUser } =
-    useDeleteUser();
+  const { mutateAsync: deleteField, isPending: isDeletingField } =
+    useDeleteField();
 
   //CREATE action
-  const handleCreateUser = async ({ values, table }) => {
-    const newValidationErrors = validateUser(values);
+  const handleCreateField = async ({ values, table }) => {
+    const newValidationErrors = validateField(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
     }
     setValidationErrors({});
-    await createUser(values);
+    await createField(values);
     table.setCreatingRow(null); //exit creating mode
   };
 
   //UPDATE action
-  const handleSaveUser = async ({ values, table }) => {
-    const newValidationErrors = validateUser(values);
+  const handleSaveField = async ({ values, table }) => {
+    const newValidationErrors = validateField(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
     }
     setValidationErrors({});
-    await updateUser(values);
+    await updateField(values);
     table.setEditingRow(null); //exit editing mode
   };
 
   //DELETE action
   const openDeleteConfirmModal = (row) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      deleteUser(row.original.id);
+    if (window.confirm('Are you sure you want to delete this Field?')) {
+      deleteField(row.original.id);
     }
   };
 
@@ -192,8 +168,8 @@ const TableP = () => {
     createDisplayMode: 'row', //default ('row', and 'custom' are also available)
     editDisplayMode: 'row', //default ('row', 'cell', 'table', and 'custom' are also available)
     enableEditing: true,
-    getRowId: (row) => row.id, //creo que ve si trajo rows o data
-    muiToolbarAlertBannerProps: isLoadingUsersError
+    getRowId: (row) => row.id, 
+    muiToolbarAlertBannerProps: isLoadingFieldsError
       ? {
         color: 'error',
         children: 'Error loading data',
@@ -205,13 +181,13 @@ const TableP = () => {
       },
     },
     onCreatingRowCancel: () => setValidationErrors({}),
-    onCreatingRowSave: handleCreateUser,
+    onCreatingRowSave: handleCreateField,
     onEditingRowCancel: () => setValidationErrors({}),
-    onEditingRowSave: handleSaveUser,
+    onEditingRowSave: handleSaveField,
     //optionally customize modal content
     renderCreateRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Create New User</DialogTitle>
+        <DialogTitle variant="h3">Crear nueva columna</DialogTitle>
         <DialogContent
           sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
         >
@@ -225,7 +201,7 @@ const TableP = () => {
     //optionally customize modal content
     renderEditRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Edit User</DialogTitle>
+        <DialogTitle variant="h3">Edit Field</DialogTitle>
         <DialogContent
           sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
         >
@@ -263,14 +239,14 @@ const TableP = () => {
           // );
         }}
       >
-        Create New User
+        Crear nueva columna
       </Button>
     ),
     state: {
-      isLoading: isLoadingUsers,
-      isSaving: isCreatingUser || isUpdatingUser || isDeletingUser,
-      showAlertBanner: isLoadingUsersError,
-      showProgressBars: isFetchingUsers,
+      isLoading: isLoadingFields,
+      isSaving: isCreatingField || isUpdatingField || isDeletingField,
+      showAlertBanner: isLoadingFieldsError,
+      showProgressBars: isFetchingFields,
     },
   });
 
@@ -278,90 +254,110 @@ const TableP = () => {
 };
 
 
-//CREATE hook (post new user to api)
-function useCreateUser() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (user) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
-    },
-    //client side optimistic update
-    onMutate: (newUserInfo) => {
-      queryClient.setQueryData(['users'], (prevUsers) => [
-        ...prevUsers,
-        {
-          ...newUserInfo,
-          id: (Math.random() + 1).toString(36).substring(7),
-        },
-      ]);
-    },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
-  });
-}
-
-//READ hook (get users from api)
-function useGetUsers() {
+//READ hook (get fields from api)
+function useGetFields(idSheet, idContract) {
   return useQuery({
-    queryKey: ['users'],
+    queryKey: ['fields'],
     queryFn: async () => {
-      //send api request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve(data);
+
+      try {
+        const response = await axios.get(`${BASE_URL}/contracts/${idContract}/dailySheet`)
+//ordeno las fields segun su step
+        const fields = response.data.steps[idSheet].fields.sort((a, b) => a.step - b.step);
+        // console.log('fields', fields)
+
+       return fields;
+       
+    } catch (error) {
+        console.error('Error al obtener pasos y campos:', error);
+    }
+
     },
     refetchOnWindowFocus: false,
   });
 }
 
-//UPDATE hook (put user in api)
-function useUpdateUser() {
+//TERMINA NUEVO
+
+
+//CREATE hook (post new Field to api)
+function useCreateField() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (user) => {
+    mutationFn: async (Field) => {
       //send api update request here
       await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
       return Promise.resolve();
     },
     //client side optimistic update
-    onMutate: (newUserInfo) => {
-      queryClient.setQueryData(['users'], (prevUsers) =>
-        prevUsers?.map((prevUser) =>
-          prevUser.id === newUserInfo.id ? newUserInfo : prevUser,
-        ),
-      );
+    onMutate: (newFieldInfo) => {
+      queryClient.setQueryData(['Fields'], (prevFields) => [
+        ...prevFields,
+        {
+          ...newFieldInfo,
+          id: (Math.random() + 1).toString(36).substring(7),
+        },
+      ]);
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
+    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['Fields'] }), //refetch Fields after mutation, disabled for demo
   });
 }
 
-//DELETE hook (delete user in api)
-function useDeleteUser() {
+//UPDATE hook (put Field in api)
+function useUpdateField() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (userId) => {
+    mutationFn: async (Field) => {
       //send api update request here
       await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
       return Promise.resolve();
     },
     //client side optimistic update
-    onMutate: (userId) => {
-      queryClient.setQueryData(['users'], (prevUsers) =>
-        prevUsers?.filter((user) => user.id !== userId),
+    onMutate: (newFieldInfo) => {
+      queryClient.setQueryData(['Fields'], (prevFields) =>
+        prevFields?.map((prevField) =>
+          prevField.id === newFieldInfo.id ? newFieldInfo : prevField,
+        ),
       );
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
+    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['Fields'] }), //refetch Fields after mutation, disabled for demo
+  });
+}
+
+//DELETE hook (delete Field in api)
+function useDeleteField() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (FieldId) => {
+      //send api update request here
+      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
+      return Promise.resolve();
+    },
+    //client side optimistic update
+    onMutate: (FieldId) => {
+      queryClient.setQueryData(['Fields'], (prevFields) =>
+        prevFields?.filter((Field) => Field.id !== FieldId),
+      );
+    },
+    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['Fields'] }), //refetch Fields after mutation, disabled for demo
   });
 }
 
 const queryClient = new QueryClient();
 
-const TablePersonal = () => (
-  //Put this with your other react-query providers near root of your app
-  <QueryClientProvider client={queryClient}>
-    <TableP />
-  </QueryClientProvider>
-);
+const TablePersonal = ({ data, idContract }) => {
+//tomo las fields y las ordeno segun su step
+  const fields = data.fields.sort((a, b) => a.step - b.step);
+  const idSheet = data.idSheet
+
+  return (<QueryClientProvider client={queryClient}>
+    <TableP fields ={fields}  idSheet = {idSheet} idContract = {idContract}/>
+  </QueryClientProvider>);
+
+
+};
+
+
 
 export default TablePersonal;
 
@@ -374,12 +370,12 @@ const validateEmail = (email) =>
       /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
     );
 
-function validateUser(user) {
+function validateField(Field) {
   return {
-    firstName: !validateRequired(user.firstName)
+    firstName: !validateRequired(Field.firstName)
       ? 'First Name is Required'
       : '',
-    lastName: !validateRequired(user.lastName) ? 'Last Name is Required' : '',
-    state: !validateRequired(user.state) ? 'Last Name is Required' : '',
+    lastName: !validateRequired(Field.lastName) ? 'Last Name is Required' : '',
+    state: !validateRequired(Field.state) ? 'Last Name is Required' : '',
   };
 }
