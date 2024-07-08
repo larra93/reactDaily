@@ -57,6 +57,7 @@ const handleStepClick = (index) => {
 };
 
   const handleNext = () => {
+    /*
     const newActiveStep =
       isLastStep() && !allStepsCompleted()
         ? // It's the last step, but not all steps have been completed,
@@ -64,6 +65,15 @@ const handleStepClick = (index) => {
         steps.findIndex((step, i) => !(i in completed))
         : activeStep + 1;
     setActiveStep(newActiveStep);
+    */
+    const newActiveStep =
+    isLastStep() && !allStepsCompleted()
+      ? // It's the last step, but not all steps have been completed,
+      // find the first step that has been completed
+      activeStep + 0
+      : activeStep + 1;
+  setActiveStep(newActiveStep);
+
   };
 
   const handleBack = () => {
@@ -140,26 +150,8 @@ const handleStepClick = (index) => {
             ))}
           </Stepper>
           <div>
-            {allStepsCompleted() ? (
-              <React.Fragment>
-                <Typography sx={{ mt: 2, mb: 1 }}>
-                  All steps completed - you&apos;re finished
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-                  <Box sx={{ flex: '1 1 auto' }} />
-                  <Button onClick={handleReset}>Reset</Button>
-                </Box>
-              </React.Fragment>
-            ) : (
-              <React.Fragment>
 
-                <Grid
-                  item
-                  xs={12}
-                  sx={{ padding: '20px' }}
-                >
-                  {formContent(activeStep)}
-                </Grid>
+              <React.Fragment>
                 <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                   <Button
                     color="inherit"
@@ -170,24 +162,21 @@ const handleStepClick = (index) => {
                     Back
                   </Button>
                   <Box sx={{ flex: '1 1 auto' }} />
-                  <Button onClick={handleNext} sx={{ mr: 1 }}>
+                  <Button onClick={handleNext }   disabled={isLastStep()} sx={{ mr: 1 }}>
                     Next
                   </Button>
-                  {activeStep !== steps.length &&
-                    (completed[activeStep] ? (
-                      <Typography variant="caption" sx={{ display: 'inline-block' }}>
-                        Step {activeStep + 1} already completed
-                      </Typography>
-                    ) : (
-                      <Button onClick={handleComplete}>
-                        {completedSteps() === totalSteps() - 1
-                          ? 'Finish'
-                          : 'Complete Step'}
-                      </Button>
-                    ))}
+
                 </Box>
+                <Grid
+                  item
+                  xs={12}
+                  sx={{ padding: '20px' }}
+                >
+                  {formContent(activeStep)}
+                </Grid>
+
               </React.Fragment>
-            )}
+
           </div>
         </Box>
       </Box>
