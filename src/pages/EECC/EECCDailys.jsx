@@ -47,15 +47,11 @@ const ContractsPage = () => {
 
     return (
         <Box
-        // onSubmit=""
-         sx={{ width: '95%', margin: '0 auto', mt: 4}}
-       >
+         sx={{ width: '95%', margin: '0 auto', mt: 4}}>
         <div>
-            <h2>Administrar Contratos</h2>
+            <h2>Ingresar Daily Report</h2>
             <Box display="flex" justifyContent="flex-end" mb={2}>
-                <Button type="submit" variant="contained" color="primary" component={Link} to="/contracts/create">
-                    Crear Contrato
-                </Button>
+
             </Box>
             <ContractTable 
                 contracts={contracts}

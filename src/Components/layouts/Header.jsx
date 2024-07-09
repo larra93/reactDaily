@@ -33,6 +33,9 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import ContentPasteGoIcon from '@mui/icons-material/ContentPasteGo';
+import ContentPasteSearchIcon from '@mui/icons-material/ContentPasteSearch';
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import Collapse from '@mui/material/Collapse';
 import AGlogo from '../../assets/img/AG.png'
 import DTSlogo from '../../assets/img/DTS.png'
@@ -47,11 +50,13 @@ export default function Header() {
     const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
     const [openConfigurar, setOpenConfigurar] = React.useState(true);
+    const [openDailys, setOpenDailys] = React.useState(true);
 
     const handleClickConfigurar = () => {
-
         setOpenConfigurar(!openConfigurar);
-
+    };
+    const handleClickDailys = () => {
+        setOpenDailys(!openDailys);
     };
 
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -158,8 +163,12 @@ export default function Header() {
                             </Box>
 
                         <Box sx={{ flexGrow: 1 }} />
-
+                        <Box sx={{ marginRight: '1rem'}}>
+                        <Box sx={{ fontSize: '1rem', color: 'white' }} >Contrato 1</Box>
+                        <Box sx={{ fontSize: '0.8rem', color: 'white' }}>Rol: EECC</Box>
+                        </Box>
                         <Box sx={{ flexGrow: 0 }}>
+                         
                             <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                                 <AccountCircleIcon sx={{ fontSize: '3rem', color: 'white' }} />
                             </IconButton>
@@ -179,6 +188,7 @@ export default function Header() {
                                 open={Boolean(anchorElUser)}
                                 onClose={handleCloseUserMenu}
                             >
+  
                                 {settings.map((setting) => (
                                     <MenuItem key={setting} onClick={() => handleUserMenuItemClick(setting)}>
                                         <Typography textAlign="center">{setting}</Typography>
@@ -234,21 +244,52 @@ export default function Header() {
                                         <ListItemText primary="Gestionar usuarios" />
                                     </ListItemButton>
                                 </ListItem>
-                                <ListItem component={Link} to="/dailys" button key="Gestionar Dailys" sx={{ color: 'white' }}>
-                                    <ListItemButton sx={{ pl: 4 }}>
-                                        <ListItemIcon sx={{ color: 'white' }}>
-                                            <AssignmentIcon />
-                                        </ListItemIcon>
-                                        <ListItemText primary="Gestionar Dailys" />
-                                    </ListItemButton>
-                                </ListItem>
-
-
                             </List>
                         </Collapse>
 
                         {/* TERMINA lista de CONFIGURAR */}
 
+
+                        {/* COMIENZA lista de Dailys */}
+
+                        <ListItemButton onClick={handleClickDailys}>
+                            <ListItemIcon sx={{ color: 'white' }}>
+                            <AssignmentIcon />
+                            </ListItemIcon>
+                            <ListItemText primary="Dailys" />
+                            {openDailys ? <ExpandLess /> : <ExpandMore />}
+                        </ListItemButton>
+
+                        <Collapse in={openDailys} timeout="auto" unmountOnExit>
+                            <List component="div" disablePadding sx={{ color: 'white', backgroundColor: '#312d2d' }}>
+                                <ListItem component={Link} to="/EECCDailys" key="Ingresar Dailys" sx={{ color: 'white' }}>
+                                    <ListItemButton sx={{ pl: 4 }}>
+                                        <ListItemIcon sx={{ color: 'white' }}>
+                                            <ContentPasteGoIcon />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Ingresar Dailys" />
+                                    </ListItemButton>
+                                </ListItem>
+                                <ListItem component={Link} to="/users" button key="Revisar Dailys" sx={{ color: 'white' }}>
+                                    <ListItemButton sx={{ pl: 4 }}>
+                                        <ListItemIcon sx={{ color: 'white' }}>
+                                            <ContentPasteSearchIcon />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Revisar Dailys" />
+                                    </ListItemButton>
+                                </ListItem>
+                                <ListItem component={Link} to="/dailys" button key="Aprobar Dailys" sx={{ color: 'white' }}>
+                                    <ListItemButton sx={{ pl: 4 }}>
+                                        <ListItemIcon sx={{ color: 'white' }}>
+                                            <AssignmentTurnedInIcon />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Aprobar Dailys" />
+                                    </ListItemButton>
+                                </ListItem>
+                            </List>
+                        </Collapse>
+
+                           {/* TERMINA lista de Dailys */}
 
 
                     </List>

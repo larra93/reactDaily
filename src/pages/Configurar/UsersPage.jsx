@@ -34,6 +34,7 @@ const UserPage = () => {
         setPage(0);
     };
     return (
+        <Box sx={{ width: '95%', margin: '0 auto', mt: 4}}>
         <div>
             <h2>Administrar Usuarios</h2>
             <Box display="flex" justifyContent="flex-end" mb={2}> 
@@ -48,6 +49,7 @@ const UserPage = () => {
                 handleChangeRowsPerPage={handleChangeRowsPerPage}
             />
         </div>
+        </Box>
     );
 };
 

@@ -4,6 +4,8 @@ import axios from 'axios';
 import { BASE_URL } from '../../helpers/config';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { Box, Button } from '@mui/material';
+
 
 const ContractFormPage = () => {
 
@@ -79,10 +81,12 @@ const ContractFormPage = () => {
   };
 
   return (
+    <Box sx={{ width: '95%', margin: '0 auto', mt: 4}}>
     <div>
       <h2>{id ? 'Editar contrato' : 'Crear contrato'}</h2>
       {id && !contract ? <p>Cargando...</p> : <ContractForm onSubmit={handleCreateContract} users={users} companies={companies} contract={contract} />}
     </div>
+    </Box>
   );
 };
 

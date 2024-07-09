@@ -14,6 +14,8 @@ import ContractsPage from "./pages/Configurar/ContractsPage"
 import UserPage from "./pages/Configurar/UsersPage"
 import UserFormPage from "./pages/Configurar/UserCUPage"
 import ContractFormato from "./pages/Configurar/ContractEstructuraPage"
+import EECCDailys from "./pages/EECC/EECCDailys"
+
 
 function App() {
     const [accessToken, setAccessToken] = useState(JSON.parse(localStorage.getItem('currentToken')))
@@ -53,6 +55,7 @@ function App() {
                     <Route path="/users/create" element={<ProtectedRoute><UserFormPage /></ProtectedRoute>} />
                     <Route path="/users/edit/:id" element={<ProtectedRoute><UserFormPage /></ProtectedRoute>} />
                     <Route path="/users" element={<ProtectedRoute><UserPage /></ProtectedRoute>} />
+                    <Route path="/EECCDailys" element={<ProtectedRoute><EECCDailys /></ProtectedRoute>} />
                     <Route path="*" element={<Navigate to="/login" />} />
                 </Routes>
             </BrowserRouter>
