@@ -15,6 +15,8 @@ import UserPage from "./pages/Configurar/UsersPage"
 import UserFormPage from "./pages/Configurar/UserCUPage"
 import ContractFormato from "./pages/Configurar/ContractEstructuraPage"
 import EECCDailys from "./pages/EECC/EECCDailys"
+import EECCIngresarDaily from "./pages/EECC/EECCIngresarDaily"
+
 
 
 function App() {
@@ -56,6 +58,7 @@ function App() {
                     <Route path="/users/edit/:id" element={<ProtectedRoute><UserFormPage /></ProtectedRoute>} />
                     <Route path="/users" element={<ProtectedRoute><UserPage /></ProtectedRoute>} />
                     <Route path="/EECCDailys" element={<ProtectedRoute><EECCDailys /></ProtectedRoute>} />
+                    <Route path="/EECCDailys/edit/:id" element={<ProtectedRoute><EECCIngresarDaily /></ProtectedRoute>} />    
                     <Route path="*" element={<Navigate to="/login" />} />
                 </Routes>
             </BrowserRouter>

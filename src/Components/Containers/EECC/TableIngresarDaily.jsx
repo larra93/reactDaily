@@ -23,7 +23,7 @@ import {
 } from '@tanstack/react-query';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { BASE_URL } from '../../../../../helpers/config';
+import { BASE_URL } from '../../../helpers/config';
 import axios from 'axios';
 
 
@@ -40,13 +40,39 @@ const ListTypes = [
 const TableP = ({ fields, idSheet, idContract }) => {
   const [validationErrors, setValidationErrors] = useState({});
 
-
-var data = fields
-var datafetched = fields 
+var data = []
+var datafetched = [] 
 const idSheet2 = idSheet
 const idContract2 = idContract
 
-  const columns = useMemo(
+//console.log('fields', fields)
+
+
+const columns = useMemo(() => {
+  // Asegurarse de que fields es un array antes de intentar mapearlo.
+  // Si fields es undefined, se usa un array vacío como valor predeterminado.
+  const safeFields = fields || [];
+  const safeValidationErrors = validationErrors || {};
+
+  return safeFields.map((field) => ({
+    accessorKey: field.id,
+    header: field.name,
+    muiEditTextFieldProps: {
+      required: true,
+      error: !!safeValidationErrors[field.name],
+      helperText: safeValidationErrors[field.name],
+      onFocus: () =>
+        setValidationErrors({
+          ...safeValidationErrors,
+          [field.name]: undefined,
+        }),
+    },
+  }));
+}, [fields, validationErrors]);
+
+  //const columns = columnsmap[0];
+
+  /*const columnsold = useMemo(
     () => [
 
       {
@@ -108,6 +134,10 @@ const idContract2 = idContract
     ],
     [validationErrors],
   );
+  */
+
+  console.log('columns', columns)
+ // console.log('columnsold', columnsold)
 
   //call CREATE hook
   const { mutateAsync: createField, isPending: isCreatingField } =
@@ -115,7 +145,7 @@ const idContract2 = idContract
 
   //call READ hook
   const {
-    data: fetchedFields = datafetched,
+    data: [],
     isError: isLoadingFieldsError,
     isFetching: isFetchingFields,
     isLoading: isLoadingFields,
@@ -164,7 +194,7 @@ const idContract2 = idContract
 
   const table = useMaterialReactTable({
     columns,
-    data: data,
+    data: [],
     createDisplayMode: 'row', //default ('row', and 'custom' are also available)
     editDisplayMode: 'row', //default ('row', 'cell', 'table', and 'custom' are also available)
     enableEditing: true,
@@ -276,9 +306,6 @@ function useGetFields(idSheet, idContract) {
     refetchOnWindowFocus: false,
   });
 }
-
-//TERMINA NUEVO
-
 
 //CREATE hook (post new Field to api)
 function useCreateField() {

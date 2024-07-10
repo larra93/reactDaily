@@ -27,7 +27,7 @@ const ContractFormPage = () => {
   const fetchUsers = async () => {
     try {
       const response = await axios.get(`${BASE_URL}/getUsers`);
-      console.log('Usuarios obtenidos:', response.data); 
+      //console.log('Usuarios obtenidos:', response.data); 
       setUsers(response.data);
     } catch (error) {
       console.error('Error al obtener los usuarios', error);
@@ -37,7 +37,7 @@ const ContractFormPage = () => {
   const fetchCompanies = async () => {
     try {
       const response = await axios.get(`${BASE_URL}/companies`);
-      console.log('Compañías obtenidas:', response.data); 
+     // console.log('Compañías obtenidas:', response.data); 
       setCompanies(response.data);
     } catch (error) {
       console.error('Error al obtener las compañías', error);
@@ -47,7 +47,7 @@ const ContractFormPage = () => {
     if (id) {
         try {
             const response = await axios.get(`${BASE_URL}/contracts/${id}`);
-            console.log('res', response.data)
+            //console.log('res', response.data)
             setContract(response.data);
         } catch (error) {
             toast.error('Error intente más tarde');

@@ -5,7 +5,7 @@ import StepButton from '@mui/material/StepButton';
 import Typography from '@mui/material/Typography';
 import { Link, useParams } from 'react-router-dom';
 import { Grid, TextField, Button, Box, FormControl, InputLabel, Select, MenuItem, OutlinedInput, Chip, Checkbox, FormControlLabel, IconButton, Tooltip } from '@mui/material';
-import TableEstructure from '../../Components/Containers/Configurar/Contracts/PagesEstructure/TableEstructure'
+import TableEECC from '../../Components/Containers/EECC/TableIngresarDaily'
 import axios from 'axios';
 import { BASE_URL } from '../../helpers/config';
 
@@ -13,7 +13,7 @@ import { BASE_URL } from '../../helpers/config';
 
 // const steps = ['Select campaign settings', 'Create an ad group', 'Create an ad'];
 
-const ContractFormato = ({ onSubmit, users, companies }) => {
+const IngresarDaily = ({ onSubmit, users, companies }) => {
   const [activeStep, setActiveStep] = React.useState(0);
   const [completed, setCompleted] = React.useState({});
   const [steps, setSteps] = useState([]);
@@ -91,34 +91,10 @@ const handleStepClick = (index) => {
 
   const formContent = (step) => {
     
-        return <TableEstructure  data={steps[step]} idContract = {id} />;
-
-    
+        return <TableEECC  data={steps[step]} idContract = {id} />;
   };
 
-  const stepStyle = {
-    boxShadow: 2,
-    backgroundColor: "rgba(0,0,0,0.1)",
-    padding: 2,
-    "& .Mui-active": {
-      "&.MuiStepIcon-root": {
-        color: "warning.main",
-        fontSize: "2rem",
-      },
-      "& .MuiStepConnector-line": {
-        borderColor: "warning.main"
-      }
-    },
-    "& .Mui-completed": {
-      "&.MuiStepIcon-root": {
-        color: "secondary.main",
-        fontSize: "2rem",
-      },
-      "& .MuiStepConnector-line": {
-        borderColor: "secondary.main"
-      }
-    }
-  }
+
 
   return (
     <Box
@@ -176,4 +152,4 @@ const handleStepClick = (index) => {
   );
 }
 
-export default ContractFormato;
+export default IngresarDaily;

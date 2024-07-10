@@ -1,5 +1,5 @@
 import React, { useEffect, useState }  from 'react';
-import ContractTable from '../../Components/Containers/Configurar/Contracts/ContractTable';
+import DailysTable from '../../Components/Containers/EECC/EECCDailysTable';
 import { Box, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
@@ -7,34 +7,26 @@ import { BASE_URL } from '../../helpers/config';
 import { toast } from 'react-toastify';
 
 const ContractsPage = () => {
-    const [contracts, setContracts] = useState([]);
+    const [dailys, setDailys] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [totalCount, setTotalCount] = useState(0);
 
     useEffect(() => {
-        fetchContracts(page + 1, rowsPerPage);
+        fetchDailys(page + 1, rowsPerPage);
     }, [page, rowsPerPage]);
-    const fetchContracts = async (page, rowsPerPage) => {
+    
+
+    const fetchDailys = async (page, rowsPerPage) => {
         try {
-            const response = await axios.get(`${BASE_URL}/contracts?page=${page}&per_page=${rowsPerPage}`);
-            setContracts(response.data.data);
+            const response = await axios.get(`${BASE_URL}/Dailys?page=${page}&per_page=${rowsPerPage}`);
+            setDailys(response.data.data);
             setTotalCount(response.data.total);
         } catch (error) {
-            console.error('Error al obtener los contratos:', error);
+            console.error('Error al obtener los Dailys:', error);
         }
     };
 
-    const handleDeleteContract = async (id) => {
-        try {
-            await axios.delete(`${BASE_URL}/contracts/${id}`);
-            toast.success('Contrato eliminado exitosamente');
-            setContracts(prevContracts => prevContracts.filter(contract => contract.id !== id));
-        } catch (error) {
-            toast.error('Error al eliminar el contrato. Intente más tarde.');
-            console.error('Error al eliminar el contrato:', error);
-        }
-    };
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -53,15 +45,13 @@ const ContractsPage = () => {
             <Box display="flex" justifyContent="flex-end" mb={2}>
 
             </Box>
-            <ContractTable 
-                contracts={contracts}
+            <DailysTable 
+                dailys={dailys}
                 page={page}
                 rowsPerPage={rowsPerPage}
                 totalCount={totalCount}
                 handleChangePage={handleChangePage}
-                handleChangeRowsPerPage={handleChangeRowsPerPage}
-                onDeleteContract={handleDeleteContract}
-            />
+                handleChangeRowsPerPage={handleChangeRowsPerPage}            />
         </div>
         </Box>
     );
