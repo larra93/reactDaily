@@ -41,10 +41,10 @@ const TableP = ({ fields, idSheet, idContract }) => {
   const [validationErrors, setValidationErrors] = useState({});
 
 
-var data = fields
-var datafetched = fields 
-const idSheet2 = idSheet
-const idContract2 = idContract
+  var data = fields
+  var datafetched = fields
+  const idSheet2 = idSheet
+  const idContract2 = idContract
 
   const columns = useMemo(
     () => [
@@ -168,7 +168,7 @@ const idContract2 = idContract
     createDisplayMode: 'row', //default ('row', and 'custom' are also available)
     editDisplayMode: 'row', //default ('row', 'cell', 'table', and 'custom' are also available)
     enableEditing: true,
-    getRowId: (row) => row.id, 
+    getRowId: (row) => row.id,
     muiToolbarAlertBannerProps: isLoadingFieldsError
       ? {
         color: 'error',
@@ -262,15 +262,17 @@ function useGetFields(idSheet, idContract) {
 
       try {
         const response = await axios.get(`${BASE_URL}/contracts/${idContract}/dailySheet`)
-//ordeno las fields segun su step
-        const fields = response.data.steps[idSheet].fields.sort((a, b) => a.step - b.step);
-        // console.log('fields', fields)
 
-       return fields;
-       
-    } catch (error) {
+        //obtengo los fields del dailysheet correspondiente y los ordeno segun su step
+        const step = response.data.steps.find(step => step.idSheet === idSheet);
+        const fields = step.fields.sort((a, b) => a.step - b.step);
+        //console.log('fields', fields)
+
+        return fields;
+
+      } catch (error) {
         console.error('Error al obtener pasos y campos:', error);
-    }
+      }
 
     },
     refetchOnWindowFocus: false,
@@ -346,13 +348,13 @@ function useDeleteField() {
 const queryClient = new QueryClient();
 
 const Table = ({ data, idContract }) => {
-  if(!data) return null
-//tomo las fields y las ordeno segun su step
+  if (!data) return null
+  //tomo las fields y las ordeno segun su step
   const fields = data.fields.sort((a, b) => a.step - b.step);
   const idSheet = data.idSheet
 
   return (<QueryClientProvider client={queryClient}>
-    <TableP fields ={fields}  idSheet = {idSheet} idContract = {idContract}/>
+    <TableP fields={fields} idSheet={idSheet} idContract={idContract} />
   </QueryClientProvider>);
 
 
@@ -380,3 +382,5 @@ function validateField(Field) {
     state: !validateRequired(Field.state) ? 'Last Name is Required' : '',
   };
 }
+
+

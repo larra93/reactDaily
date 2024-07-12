@@ -55,7 +55,7 @@ const columns = useMemo(() => {
   const safeValidationErrors = validationErrors || {};
 
   return safeFields.map((field) => ({
-    accessorKey: field.id,
+    accessorKey: field.name,
     header: field.name,
     muiEditTextFieldProps: {
       required: true,
@@ -72,7 +72,8 @@ const columns = useMemo(() => {
 
   //const columns = columnsmap[0];
 
-  /*const columnsold = useMemo(
+  /*
+  const columnsold = useMemo(
     () => [
 
       {
@@ -134,22 +135,22 @@ const columns = useMemo(() => {
     ],
     [validationErrors],
   );
-  */
-
-  console.log('columns', columns)
- // console.log('columnsold', columnsold)
+  
+*/
+ // console.log('columns', columns)
+ //console.log('columnsold', columnsold)
 
   //call CREATE hook
   const { mutateAsync: createField, isPending: isCreatingField } =
     useCreateField();
 
   //call READ hook
-  const {
-    data: [],
+  var {
+    data: data,
     isError: isLoadingFieldsError,
     isFetching: isFetchingFields,
     isLoading: isLoadingFields,
-  } = useGetFields(idSheet2, idContract2);
+  } = useGetData(idSheet2, idContract2);
 
 
   //call UPDATE hook
@@ -285,11 +286,11 @@ const columns = useMemo(() => {
 
 
 //READ hook (get fields from api)
-function useGetFields(idSheet, idContract) {
+function useGetData(idSheet, idContract) {
   return useQuery({
-    queryKey: ['fields'],
+    queryKey: ['data'],
     queryFn: async () => {
-
+/*
       try {
         const response = await axios.get(`${BASE_URL}/contracts/${idContract}/dailySheet`)
 //ordeno las fields segun su step
@@ -301,7 +302,7 @@ function useGetFields(idSheet, idContract) {
     } catch (error) {
         console.error('Error al obtener pasos y campos:', error);
     }
-
+*/ return [];
     },
     refetchOnWindowFocus: false,
   });

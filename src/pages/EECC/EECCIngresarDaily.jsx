@@ -38,14 +38,14 @@ const IngresarDaily = ({ onSubmit, users, companies }) => {
   };
 
   useEffect(() => {
-    console.log('entro al useEffect');
+   // console.log('entro al useEffect');
     fetchStepsAndFields(); 
     
 }, [id]);
 
 const fetchStepsAndFields = async () => {
-  try {
-      const response = await axios.get(`${BASE_URL}/contracts/${id}/dailySheet`)
+  try { 
+      const response = await axios.get(`${BASE_URL}/Dailys/${id}/dailyStructure`)
 
       setSteps(response.data.steps);
       console.log('response', response.data.steps)
