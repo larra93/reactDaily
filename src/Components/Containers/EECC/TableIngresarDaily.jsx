@@ -314,6 +314,7 @@ function useCreateField() {
   return useMutation({
     mutationFn: async (Field) => {
       //send api update request here
+      console.log('Field', Field);
       await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
       return Promise.resolve();
     },

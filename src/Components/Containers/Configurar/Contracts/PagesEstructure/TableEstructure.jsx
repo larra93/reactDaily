@@ -25,6 +25,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { BASE_URL } from '../../../../../helpers/config';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 
 //list of field types
@@ -41,14 +42,18 @@ const TableP = ({ fields, idSheet, idContract }) => {
   const [validationErrors, setValidationErrors] = useState({});
 
 
-  var data = fields
-  var datafetched = fields
+
   const idSheet2 = idSheet
   const idContract2 = idContract
 
   const columns = useMemo(
     () => [
-
+      {
+        accessorKey: 'id',
+        header: 'Id',
+        enableEditing: false,
+        size: 80,
+      },
       {
         accessorKey: 'name',
         header: 'Nombre Columna',
@@ -111,11 +116,11 @@ const TableP = ({ fields, idSheet, idContract }) => {
 
   //call CREATE hook
   const { mutateAsync: createField, isPending: isCreatingField } =
-    useCreateField();
+    useCreateField(idSheet2, idContract2);
 
   //call READ hook
   const {
-    data: fetchedFields = datafetched,
+    data: fetchedFields = [],
     isError: isLoadingFieldsError,
     isFetching: isFetchingFields,
     isLoading: isLoadingFields,
@@ -124,7 +129,7 @@ const TableP = ({ fields, idSheet, idContract }) => {
 
   //call UPDATE hook
   const { mutateAsync: updateField, isPending: isUpdatingField } =
-    useUpdateField();
+    useUpdateField(fields);
 
   //call DELETE hook
   const { mutateAsync: deleteField, isPending: isDeletingField } =
@@ -143,14 +148,15 @@ const TableP = ({ fields, idSheet, idContract }) => {
   };
 
   //UPDATE action
-  const handleSaveField = async ({ values, table }) => {
+  const handleSaveField = async ({ values, table, row }) => {
     const newValidationErrors = validateField(values);
+
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
     }
     setValidationErrors({});
-    await updateField(values);
+    await updateField({ ...values, id: row.id });
     table.setEditingRow(null); //exit editing mode
   };
 
@@ -164,10 +170,11 @@ const TableP = ({ fields, idSheet, idContract }) => {
 
   const table = useMaterialReactTable({
     columns,
-    data: data,
+    data: fetchedFields,
     createDisplayMode: 'row', //default ('row', and 'custom' are also available)
     editDisplayMode: 'row', //default ('row', 'cell', 'table', and 'custom' are also available)
     enableEditing: true,
+    initialState: { columnVisibility: { id: false } },
     getRowId: (row) => row.id,
     muiToolbarAlertBannerProps: isLoadingFieldsError
       ? {
@@ -256,6 +263,7 @@ const TableP = ({ fields, idSheet, idContract }) => {
 
 //READ hook (get fields from api)
 function useGetFields(idSheet, idContract) {
+
   return useQuery({
     queryKey: ['fields'],
     queryFn: async () => {
@@ -266,7 +274,6 @@ function useGetFields(idSheet, idContract) {
         //obtengo los fields del dailysheet correspondiente y los ordeno segun su step
         const step = response.data.steps.find(step => step.idSheet === idSheet);
         const fields = step.fields.sort((a, b) => a.step - b.step);
-        //console.log('fields', fields)
 
         return fields;
 
@@ -279,50 +286,66 @@ function useGetFields(idSheet, idContract) {
   });
 }
 
-//TERMINA NUEVO
-
-
 //CREATE hook (post new Field to api)
-function useCreateField() {
+function useCreateField(idSheet, idContract) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (Field) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
+      try {
+        // Intenta enviar la solicitud de creación a la API
+        const response = await axios.post(`${BASE_URL}/fields/create/${idSheet}`, Field);
+        toast.success('Campo creado exitosamente');
+        return response.data; // Retorna los datos de la respuesta
+      } catch (error) {
+        // Maneja cualquier error que ocurra durante la solicitud
+        console.error('Error al crear el campo:', error.response ? error.response.data : error.message);
+        toast.error(`Error al crear el campo: ${error.response ? error.response.data.message : error.message}`);
+        throw error; // Relanza el error para que useMutation pueda manejarlo
+      }
     },
     //client side optimistic update
     onMutate: (newFieldInfo) => {
-      queryClient.setQueryData(['Fields'], (prevFields) => [
-        ...prevFields,
+      queryClient.setQueryData(['fields'], (prevFields) => [
+        ...prevFields, // Asegurarse de que prevFields sea un arreglo
         {
           ...newFieldInfo,
           id: (Math.random() + 1).toString(36).substring(7),
         },
       ]);
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['Fields'] }), //refetch Fields after mutation, disabled for demo
+     onSettled: () => {queryClient.invalidateQueries({ queryKey: ['fields'] });} //refetch Fields after mutation
   });
 }
 
 //UPDATE hook (put Field in api)
 function useUpdateField() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (Field) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
+  return useMutation( {
+   
+    mutationFn: async ({ id, ...Field }) => {
+      try {
+        // Intenta enviar la solicitud de creación a la API
+        const response = await axios.post(`${BASE_URL}/fields/update/${id}`, Field);
+        toast.success('Campo creado exitosamente');
+        return response.data; // Retorna los datos de la respuesta
+      } catch (error) {
+        // Maneja cualquier error que ocurra durante la solicitud
+        console.error('Error al crear el campo:', error.response ? error.response.data : error.message);
+        toast.error(`Error al crear el campo: ${error.response ? error.response.data.message : error.message}`);
+        throw error; // Relanza el error para que useMutation pueda manejarlo
+      }
     },
     //client side optimistic update
     onMutate: (newFieldInfo) => {
-      queryClient.setQueryData(['Fields'], (prevFields) =>
+      queryClient.setQueryData(['fields'], (prevFields) =>
         prevFields?.map((prevField) =>
           prevField.id === newFieldInfo.id ? newFieldInfo : prevField,
         ),
       );
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['Fields'] }), //refetch Fields after mutation, disabled for demo
+
+    // onSettled: () => {queryClient.invalidateQueries({ queryKey: ['fields'] });}
+     //refetch Fields after mutation
   });
 }
 
@@ -375,11 +398,10 @@ const validateEmail = (email) =>
 
 function validateField(Field) {
   return {
-    firstName: !validateRequired(Field.firstName)
-      ? 'First Name is Required'
-      : '',
-    lastName: !validateRequired(Field.lastName) ? 'Last Name is Required' : '',
-    state: !validateRequired(Field.state) ? 'Last Name is Required' : '',
+    name: !validateRequired(Field.name)? ' Name is Required': '',
+    description: !validateRequired(Field.description) ? 'description is Required' : '',
+    field_type: !validateRequired(Field.field_type) ? 'field_type is Required' : '',
+    //step: !validateRequired(Field.step) ? 'step is Required' : '',  //para el step hay que crear una validación especial ya que al ser numero no me tira el length
   };
 }
 
