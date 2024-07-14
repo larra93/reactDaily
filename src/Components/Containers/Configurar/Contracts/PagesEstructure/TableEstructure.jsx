@@ -474,9 +474,6 @@ const TableEstructure = ({ data, currentStep, idContract }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Button variant="contained" onClick={sendData}>
-        Fetch Data
-      </Button>
       <Table
         fields={fields}
         idSheet={idSheet}

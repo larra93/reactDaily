@@ -25,9 +25,6 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
 
   const { setSteps } = useSteps(); // Destructure to get setTableData
 
-
-
-
   const { id } = useParams();
 
   const totalSteps = () => {
@@ -100,7 +97,12 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
     setCompleted({});
   };
 
+  const sendData = async () => {
 
+    console.log('Data sent to API:', steps);
+    //console.log('tabledata', useTableData);
+
+  };
 
   const stepStyle = {
     boxShadow: 2,
@@ -133,8 +135,8 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
     >
       <h2>Modificar Estructura Daily   </h2>
 
-      <Button variant="contained" >
-        Fetch Data
+      <Button variant="contained"  onClick={sendData}>
+        Guardar Datos
       </Button>
       <Box
         component="form"
