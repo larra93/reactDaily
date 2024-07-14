@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, createContext, useContext } from 'react';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepButton from '@mui/material/StepButton';
@@ -8,15 +8,24 @@ import { Grid, TextField, Button, Box, FormControl, InputLabel, Select, MenuItem
 import TableEstructure from '../../Components/Containers/Configurar/Contracts/PagesEstructure/TableEstructure'
 import axios from 'axios';
 import { BASE_URL } from '../../helpers/config';
+import { StepsProvider, useSteps } from '../../Components/Containers/Configurar/Contracts/PagesEstructure/StepsContext';
+
 
 
 
 // const steps = ['Select campaign settings', 'Create an ad group', 'Create an ad'];
 
+
+
 const ContractFormato = ({ onSubmit, users, companies }) => {
   const [activeStep, setActiveStep] = React.useState(0);
   const [completed, setCompleted] = React.useState({});
-  const [steps, setSteps] = useState([]);
+
+  const { steps } = useSteps();
+
+  const { setSteps } = useSteps(); // Destructure to get setTableData
+
+
 
 
   const { id } = useParams();
@@ -38,33 +47,35 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
   };
 
   useEffect(() => {
-    console.log('entro al useEffect');
-    fetchStepsAndFields(); 
-    
-}, [id]);
+    fetchStepsAndFields();
 
-const fetchStepsAndFields = async () => {
-  try {
-      const response = await axios.get(`${BASE_URL}/contracts/${id}/dailySheet`)
+  }, [id]);
 
-      setSteps(response.data.steps);
-      console.log('response', response.data.steps)
-  } catch (error) {
-      console.error('Error al obtener pasos y campos:', error);
-  }
-};
+  const fetchStepsAndFields = async () => {
 
-const handleStepClick = (index) => {
-  setActiveStep(index);
-};
+    if (steps.length === 0) {
+      try {
+        const response = await axios.get(`${BASE_URL}/contracts/${id}/dailySheet`)
+
+        setSteps(response.data.steps);
+
+      } catch (error) {
+        console.error('Error al obtener pasos y campos:', error);
+      }
+    }
+  };
+
+  const handleStepClick = (index) => {
+    setActiveStep(index);
+  };
 
   const handleNext = () => {
 
     const newActiveStep =
-    isLastStep() && !allStepsCompleted()
-      ?  activeStep + 0
-      : activeStep + 1;
-  setActiveStep(newActiveStep);
+      isLastStep() && !allStepsCompleted()
+        ? activeStep + 0
+        : activeStep + 1;
+    setActiveStep(newActiveStep);
 
   };
 
@@ -73,7 +84,7 @@ const handleStepClick = (index) => {
   };
 
   const handleStep = (step) => () => {
-    
+
     setActiveStep(step);
   };
 
@@ -89,12 +100,7 @@ const handleStepClick = (index) => {
     setCompleted({});
   };
 
-  const formContent = (step) => {
-    
-        return <TableEstructure  data={steps[step]} idContract = {id} />;
 
-    
-  };
 
   const stepStyle = {
     boxShadow: 2,
@@ -122,13 +128,17 @@ const handleStepClick = (index) => {
 
   return (
     <Box
-   // onSubmit=""
-    sx={{ width: '90%', margin: '0 auto' }}
-  >
-      <h2>Modificar Estructura Daily</h2>
+      // onSubmit=""
+      sx={{ width: '90%', margin: '0 auto' }}
+    >
+      <h2>Modificar Estructura Daily   </h2>
+
+      <Button variant="contained" >
+        Fetch Data
+      </Button>
       <Box
         component="form"
-       // onSubmit=""
+        // onSubmit=""
         sx={{ width: '95%', margin: '0 auto' }}
       >
         <Box sx={{ width: '100%' }}>
@@ -143,31 +153,36 @@ const handleStepClick = (index) => {
           </Stepper>
           <div>
 
-              <React.Fragment>
-                <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-                  <Button
-                    color="inherit"
-                    disabled={activeStep === 0}
-                    onClick={handleBack}
-                    sx={{ mr: 1 }}
-                  >
-                    Back
-                  </Button>
-                  <Box sx={{ flex: '1 1 auto' }} />
-                  <Button onClick={handleNext }   disabled={isLastStep()} sx={{ mr: 1 }}>
-                    Next
-                  </Button>
-
-                </Box>
-                <Grid
-                  item
-                  xs={12}
-                  sx={{ padding: '20px' }}
+            <React.Fragment>
+              <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
+                <Button
+                  color="inherit"
+                  disabled={activeStep === 0}
+                  onClick={handleBack}
+                  sx={{ mr: 1 }}
                 >
-                  {formContent(activeStep)}
-                </Grid>
+                  Back
+                </Button>
+                <Box sx={{ flex: '1 1 auto' }} />
+                <Button onClick={handleNext} disabled={isLastStep()} sx={{ mr: 1 }}>
+                  Next
+                </Button>
 
-              </React.Fragment>
+              </Box>
+              <Grid
+                item
+                xs={12}
+                sx={{ padding: '20px' }}
+              >
+                <TableEstructure
+                  key={activeStep}
+                  data={steps[activeStep]}
+                  currentStep={activeStep}
+                  idContract={id}
+                />
+              </Grid>
+
+            </React.Fragment>
 
           </div>
         </Box>
@@ -176,4 +191,9 @@ const handleStepClick = (index) => {
   );
 }
 
-export default ContractFormato;
+export default () => (
+  <StepsProvider>
+      <ContractFormato />
+  </StepsProvider>
+);
+
