@@ -4,16 +4,21 @@ import Step from '@mui/material/Step';
 import StepButton from '@mui/material/StepButton';
 import Typography from '@mui/material/Typography';
 import { Link, useParams } from 'react-router-dom';
-import { Grid, TextField, Button, Box, FormControl, InputLabel, Select, MenuItem, OutlinedInput, Chip, Checkbox, FormControlLabel, IconButton, Tooltip } from '@mui/material';
+import { Grid, TextField, Button, Box, FormControl, InputLabel, Select, MenuItem, OutlinedInput, Chip, Checkbox, FormControlLabel, IconButton, Tooltip, Modal } from '@mui/material';
 import TableEstructure from '../../Components/Containers/Configurar/Contracts/PagesEstructure/TableEstructure'
+import TableHojas from '../../Components/Containers/Configurar/Contracts/PagesEstructure/TableHojas'
 import axios from 'axios';
 import { BASE_URL } from '../../helpers/config';
 import { StepsProvider, useSteps } from '../../Components/Containers/Configurar/Contracts/PagesEstructure/StepsContext';
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
+import SaveIcon from '@mui/icons-material/Save';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
+import { blueGrey, red } from '@mui/material/colors';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 
-
-
-// const steps = ['Select campaign settings', 'Create an ad group', 'Create an ad'];
 
 
 
@@ -62,9 +67,7 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
     }
   };
 
-  const handleStepClick = (index) => {
-    setActiveStep(index);
-  };
+ 
 
   const handleNext = () => {
 
@@ -85,20 +88,10 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
     setActiveStep(step);
   };
 
-  const handleComplete = () => {
-    const newCompleted = completed;
-    newCompleted[activeStep] = true;
-    setCompleted(newCompleted);
-    handleNext();
-  };
 
-  const handleReset = () => {
-    setActiveStep(0);
-    setCompleted({});
-  };
+
 
   const sendData = async () => {
-
     console.log('Data sent to API:', steps);
     //console.log('tabledata', useTableData);
 
@@ -128,23 +121,50 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
     }
   }
 
+  const formContent = () => {
+
+    return <TableEstructure
+      key={activeStep}
+      data={steps[activeStep]}
+      currentStep={activeStep}
+      idContract={id}
+    />;
+  };
+
+
+  const [openModal, setOpenModal] = useState(false);
+
+  const handleOpenModal = () => {
+    setOpenModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
+
   return (
     <Box
       // onSubmit=""
-      sx={{ width: '90%', margin: '0 auto' }}
-    >
-      <h2>Modificar Estructura Daily   </h2>
-
-      <Button variant="contained"  onClick={sendData}>
-        Guardar Datos
-      </Button>
+      sx={{ width: '95%', margin: '0 auto', justifyContent: 'center', alignItems: 'center' }}
+        >
+      <h2>Modificar Estructura Daily</h2>
       <Box
-        component="form"
-        // onSubmit=""
-        sx={{ width: '95%', margin: '0 auto' }}
+        sx={{ width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center', paddingBottom: '2rem' }}
       >
+        <Button  // este boton deberia enviar a la bbdd los cambios realizados con la variable steps
+         startIcon={<SaveIcon />} style={{backgroundColor: '#388e3c'}} sx={{ marginLeft: '2rem' }} variant="contained" onClick={sendData}>
+          Guardar Cambios
+        </Button>
+
+        
+        <Button  // este boton deberia recargar la pagina con un boton de alerta asi la variable step retorna a como esta en la base de datos
+          color="error"  startIcon={<CancelIcon />}   sx={{ margin: '2rem' }}  variant="outlined" onClick={handleOpenModal}>
+          Cancelar Cambios
+        </Button>
+      </Box>
+      <Box component="form" sx={{ width: '95%', margin: '0 auto' }}>
         <Box sx={{ width: '100%' }}>
-          <Stepper nonLinear activeStep={activeStep} >
+          <Stepper nonLinear activeStep={activeStep}>
             {steps.map((label, index) => (
               <Step key={label.idSheet} completed={completed[index]}>
                 <StepButton color="inherit" onClick={handleStep(index)}>
@@ -153,49 +173,53 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
               </Step>
             ))}
           </Stepper>
-          <div>
 
+          <div>
             <React.Fragment>
               <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-                <Button
-                  color="inherit"
-                  disabled={activeStep === 0}
-                  onClick={handleBack}
-                  sx={{ mr: 1 }}
-                >
+                <Button  variant="outlined"   sx={{color: '#01579b', borderColor: '#01579b', maxHeight: '35px'}} startIcon={<ArrowBackIosIcon />}  disabled={activeStep === 0} onClick={handleBack} >
                   Back
                 </Button>
+                <Box
+                  sx={{ width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center', paddingBottom: '1rem' }}
+                ><Button startIcon={<AutoStoriesIcon />}  style={{backgroundColor: '#37474f'}}  sx={{ marginTop: '0rem' }} variant="contained" onClick={handleOpenModal}>
+                    Modificar Hojas
+                  </Button>
+                </Box>
                 <Box sx={{ flex: '1 1 auto' }} />
-                <Button onClick={handleNext} disabled={isLastStep()} sx={{ mr: 1 }}>
+                <Button variant="outlined"  sx={{color: '#01579b', borderColor: '#01579b', maxHeight: '35px'}} endIcon={<ArrowForwardIosIcon />}  onClick={handleNext} disabled={isLastStep()} >
                   Next
                 </Button>
-
               </Box>
-              <Grid
-                item
-                xs={12}
-                sx={{ padding: '20px' }}
-              >
-                <TableEstructure
-                  key={activeStep}
-                  data={steps[activeStep]}
-                  currentStep={activeStep}
-                  idContract={id}
-                />
+
+              <Grid item xs={12} sx={{ padding: '20px' }}>
+                {formContent()}
               </Grid>
-
             </React.Fragment>
-
           </div>
         </Box>
       </Box>
+
+      {openModal && (
+        <Modal open={openModal} onClose={handleCloseModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description"
+          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+          <Box sx={{ bgcolor: 'background.paper', boxShadow: 24,p: 4, width: '90%', borderRadius: 2}}>
+            <Box sx={{margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center',}}>
+            <Button   startIcon={<SaveIcon />}    sx={{ borderColor: '#388e3c' }}  variant="outlined" onClick={handleCloseModal} >Cerrar</Button>
+            </Box>
+           
+            <TableHojas />
+           
+          </Box>
+        </Modal>
+      )}
     </Box>
   );
 }
 
 export default () => (
   <StepsProvider>
-      <ContractFormato />
+    <ContractFormato />
   </StepsProvider>
 );
 

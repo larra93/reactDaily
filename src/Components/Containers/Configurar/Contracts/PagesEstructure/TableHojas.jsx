@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState, forwardRef } from 'react';
 import {
   MRT_EditActionButtons,
   MaterialReactTable,
@@ -27,7 +27,6 @@ import { BASE_URL } from '../../../../../helpers/config';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useSteps } from './StepsContext';
-import FeaturedPlayListIcon from '@mui/icons-material/FeaturedPlayList';
 
 
 //list of field types
@@ -40,23 +39,24 @@ const ListTypes = [
 ];
 
 
-const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fields, idSheet, idContract }) => {
+const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal }) => {
   const [validationErrors, setValidationErrors] = useState({});
 
-  const idSheet2 = idSheet
-  const idContract2 = idContract
+  const { steps } = useSteps();
+  const { setSteps } = useSteps();
+
 
   const columns = useMemo(
     () => [
       {
-        accessorKey: 'id',
+        accessorKey: 'idSheet',
         header: 'Id',
         enableEditing: false,
         size: 80,
       },
       {
-        accessorKey: 'name',
-        header: 'Nombre Columna',
+        accessorKey: 'sheet',
+        header: 'Nombre Hoja',
         muiEditTextFieldProps: {
           required: true,
           error: !!validationErrors?.name,
@@ -71,31 +71,6 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
         },
       },
       {
-        accessorKey: 'description',
-        header: 'Descripción',
-        muiEditTextFieldProps: {
-          required: true,
-          error: !!validationErrors?.description,
-          helperText: validationErrors?.description,
-          //remove any previous validation errors when Field focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              description: undefined,
-            }),
-        },
-      },
-      {
-        accessorKey: 'field_type',
-        header: 'Tipo de Campo',
-        editVariant: 'select',
-        editSelectOptions: ListTypes,
-        muiEditTextFieldProps: {
-          select: true,
-          error: !!validationErrors?.field_type,
-          helperText: validationErrors?.field_type,
-        },
-      }, {
         accessorKey: 'step',
         header: 'Orden',
         muiEditTextFieldProps: {
@@ -108,45 +83,22 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
               ...validationErrors,
               description: undefined,
             }),
-            type: 'number', // set the type to 'number' for numeric input
+          type: 'number', // set the type to 'number' for numeric input
         },
-      },
+      }
     ],
     [validationErrors],
   );
 
-/*
-  //call CREATE hook
-  const { mutateAsync: createField, isPending: isCreatingField } =
-    useCreateField(idSheet2, idContract2);
-
-  //call READ hook
-  const {
-    data: fetchedFields = [],
-    isError: isLoadingFieldsError,
-    isFetching: isFetchingFields,
-    isLoading: isLoadingFields,
-  } = useGetFields(idSheet2, idContract2, fields);
-
-
-  //call UPDATE hook
-  const { mutateAsync: updateField, isPending: isUpdatingField } =
-    useUpdateField(fields);
-
-  //call DELETE hook
-  const { mutateAsync: deleteField, isPending: isDeletingField } =
-    useDeleteField();
-
-
-*/
   const table = useMaterialReactTable({
     columns,
-    data: fields,
+    data: steps,
     createDisplayMode: 'row', //default ('row', and 'custom' are also available)
     editDisplayMode: 'row', //default ('row', 'cell', 'table', and 'custom' are also available)
     enableEditing: true,
     initialState: { columnVisibility: { id: false } },
-    getRowId: (row) => row.id,/* 
+    getRowId: (row) => row.id,
+    /* 
     muiToolbarAlertBannerProps: isLoadingFieldsError
       ? {
         color: 'error',
@@ -164,7 +116,6 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
     onEditingRowSave: handleSaveField,
     //optionally customize modal content
     renderCreateRowDialogContent: ({ table, row, internalEditComponents }) => (
-
       <>
         <DialogTitle variant="h3">Crear nueva columna</DialogTitle>
         <DialogContent
@@ -208,8 +159,8 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
     ),
     renderTopToolbarCustomActions: ({ table }) => (
       <Box>
-        <Button style={{backgroundColor: '#01579b'}}
-          variant="contained"   startIcon={<FeaturedPlayListIcon />} 
+        <Button
+          variant="contained"
           onClick={() => {
             table.setCreatingRow(true); //simplest way to open the create row modal with no default values
             //or you can pass in a row object to set default values with the `createRow` helper function
@@ -220,141 +171,31 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
             // );
           }}
         >
-          Crear nueva columna
+          Crear nueva Hoja
         </Button>
       </Box>
     ),
-  /*  state: { 
+    /*  state: { 
       isLoading: isLoadingFields,
       isSaving: isCreatingField || isUpdatingField || isDeletingField,
       showAlertBanner: isLoadingFieldsError,
       showProgressBars: isFetchingFields,
-    }, */
+       }, 
+    */
   });
 
   return <MaterialReactTable table={table} />;
 };
 
-/* ESTOS NO LO ESTAMOS USANDO YA QUE SE MODIFICA TODO EN ELS ERVIDOR Y LUEGO SE ENVIA CON EL BOTON DE GUARDAR
-//READ hook (get fields from api)
-function useGetFields(idSheet, idContract, fields) {
 
-  return useQuery({
-    queryKey: ['fields'],
-    queryFn: async () => {
-      console.log('fields', fields)
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve(fields);
-
-      // const response = await axios.get(`${BASE_URL}/contracts/${idContract}/dailySheet`)
-      //obtengo los fields del dailysheet correspondiente y los ordeno segun su step
-      // const step = response.data.steps.find(step => step.idSheet === idSheet);
-      //  const fields = step.fields.sort((a, b) => a.step - b.step);
-
-      //return fields;
-
-
-    },
-    refetchOnWindowFocus: false,
-  });
-}
-
-//CREATE hook (post new Field to api)
-function useCreateField(idSheet, idContract) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (Field) => {
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-        return Promise.resolve();
-        // Intenta enviar la solicitud de creación a la API
-        // const response = await axios.post(`${BASE_URL}/fields/create/${idSheet}`, Field);
-        //toast.success('Campo creado exitosamente');
-        return response.data; // Retorna los datos de la respuesta
-      } catch (error) {
-        // Maneja cualquier error que ocurra durante la solicitud
-        console.error('Error al crear el campo:', error.response ? error.response.data : error.message);
-        toast.error(`Error al crear el campo: ${error.response ? error.response.data.message : error.message}`);
-        throw error; // Relanza el error para que useMutation pueda manejarlo
-      }
-    },
-    //client side optimistic update
-    onMutate: (newFieldInfo) => {
-
-      queryClient.setQueryData(['fields'], (prevFields = []) => [
-
-        ...prevFields,
-        {
-          ...newFieldInfo,
-          id: (Math.random() + 1).toString(36).substring(7),
-        },
-      ]);
-    },
-    onSettled: () => { queryClient.invalidateQueries({ queryKey: ['fields'] }); } //refetch Fields after mutation
-  });
-}
-
-//UPDATE hook (put Field in api)
-function useUpdateField() {
-  const queryClient = useQueryClient();
-  return useMutation({
-
-    mutationFn: async ({ id, ...Field }) => {
-      try {
-        // Intenta enviar la solicitud de creación a la API
-        const response = await axios.post(`${BASE_URL}/fields/update/${id}`, Field);
-        toast.success('Campo creado exitosamente');
-        return response.data; // Retorna los datos de la respuesta
-      } catch (error) {
-        // Maneja cualquier error que ocurra durante la solicitud
-        console.error('Error al crear el campo:', error.response ? error.response.data : error.message);
-        toast.error(`Error al crear el campo: ${error.response ? error.response.data.message : error.message}`);
-        throw error; // Relanza el error para que useMutation pueda manejarlo
-      }
-    },
-    //client side optimistic update
-    onMutate: (newFieldInfo) => {
-      queryClient.setQueryData(['fields'], (prevFields) =>
-        prevFields?.map((prevField) =>
-          prevField.id === newFieldInfo.id ? newFieldInfo : prevField,
-        ),
-      );
-    },
-
-    // onSettled: () => {queryClient.invalidateQueries({ queryKey: ['fields'] });}
-    //refetch Fields after mutation
-  });
-}
-
-//DELETE hook (delete Field in api)
-function useDeleteField() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (FieldId) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
-    },
-    //client side optimistic update
-    onMutate: (FieldId) => {
-      queryClient.setQueryData(['Fields'], (prevFields) =>
-        prevFields?.filter((Field) => Field.id !== FieldId),
-      );
-    },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['Fields'] }), //refetch Fields after mutation, disabled for demo
-  });
-}
-*/
 const queryClient = new QueryClient();
 
-const TableEstructure = ({ data, currentStep, idContract }) => {
+const TableHojas = forwardRef((props, ref) => {
 
-  if (!data) return null
   const { steps } = useSteps();
   const { setSteps } = useSteps();
   //tomo las fields y las ordeno segun su step
-  const fields = steps[currentStep]?.fields?.sort((a, b) => a.step - b.step) || [];
-  const idSheet = data.idSheet
+  console.log(steps);
   const [validationErrors, setValidationErrors] = useState({});
 
   const handleCreateField = async ({ values, table }) => {
@@ -364,24 +205,25 @@ const TableEstructure = ({ data, currentStep, idContract }) => {
       return;
     }
     setValidationErrors({});
-
     const stepValueAsInteger = parseInt(values.step, 10);
     // Generar un ID temporal para el nuevo campo
     const newField = {
       ...values,
       step: stepValueAsInteger,
-      id: (Math.random() + 1).toString(36).substring(7),
+      idSheet: (Math.random() + 1).toString(36).substring(7),
     };
+
     // Crear una copia profunda de steps para evitar mutaciones directas
-    const newSteps = [...steps];
+    let newSteps = [...steps];
     // Asegurarse de que el objeto en el currentStep exista y tenga un arreglo de fields
-    if (newSteps[currentStep] && Array.isArray(newSteps[currentStep].fields)) {
-      newSteps[currentStep].fields = [...newSteps[currentStep].fields, newField];
+    if (newSteps && Array.isArray(newSteps)) {
+      newSteps = [...newSteps, newField];
     } else {
       // Si no existe, inicializarlo con el nuevo campo
-      newSteps[currentStep].fields = [{ ...newField }];;
+      //newSteps = { fields: [newField] };
     }
     setSteps(newSteps); // Actualizar el estado global
+
     table.setCreatingRow(null); // Exit creating mode
   };
 
@@ -392,22 +234,19 @@ const TableEstructure = ({ data, currentStep, idContract }) => {
       return;
     }
     setValidationErrors({});
-
-    const newSteps = [...steps];
-
-     newSteps[currentStep].fields = steps[currentStep].fields.map((field) =>
-      field.id === row.id ? { ...field, ...values } : field
+    let newSteps = [...steps];
+    newSteps = steps.map((sheet) =>
+      sheet.idSheet === row.original.idSheet ? { ...sheet, ...values } : sheet
     );
-    console.log('newSteps:', newSteps);
     setSteps(newSteps); // Actualizar el estado global
     table.setEditingRow(null); // Exit editing mode
   };
 
   const openDeleteConfirmModal = (row) => {
     if (window.confirm('Are you sure you want to delete this Field?')) {
-      const newSteps = [...steps];
-      
-      newSteps[currentStep].fields = steps[currentStep].fields.filter((field) => field.id !== row.original.id);
+      let newSteps = [...steps];
+      console.log('row', row);
+      newSteps = steps.filter((sheet) => sheet.idSheet !== row.original.idSheet);
       console.log('newSteps:', newSteps);
 
       setSteps(newSteps); // Update local state
@@ -416,31 +255,29 @@ const TableEstructure = ({ data, currentStep, idContract }) => {
 
 
   const sendData = async () => {
-
     console.log('Data sent to API:', steps[currentStep]);
     //console.log('tabledata', useTableData);
-
   };
-
-
-
   return (
+    <Box
+    // onSubmit=""
+    sx={{ width: '100%', margin: '0 auto', justifyContent: 'center', alignItems: 'center' }}
+  >
+    <h2>Modificar Hojas Daily Report</h2>
     <QueryClientProvider client={queryClient}>
       <Table
-        fields={fields}
-        idSheet={idSheet}
-        idContract={idContract}
         handleCreateField={handleCreateField}
         handleSaveField={handleSaveField}
         openDeleteConfirmModal={openDeleteConfirmModal} />
-    </QueryClientProvider>);
+    </QueryClientProvider>
+    </Box>);
+   
+
+});
 
 
-};
 
-
-
-export default TableEstructure;
+export default TableHojas;
 
 const validateRequired = (value) => !!value.length;
 const validateEmail = (email) =>
@@ -452,9 +289,7 @@ const validateEmail = (email) =>
     );
 function validateField(Field) {
   return {
-    name: !validateRequired(Field.name) ? ' Name is Required' : '',
-    description: !validateRequired(Field.description) ? 'description is Required' : '',
-    field_type: !validateRequired(Field.field_type) ? 'field_type is Required' : '',
+    sheet: !validateRequired(Field.sheet) ? ' Name is Required' : '',
     //step: !validateRequired(Field.step) ? 'step is Required' : '',  //para el step hay que crear una validación especial ya que al ser numero no me tira el length
   };
 }
