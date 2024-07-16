@@ -9,6 +9,7 @@ import TableEstructure from '../../Components/Containers/Configurar/Contracts/Pa
 import TableHojas from '../../Components/Containers/Configurar/Contracts/PagesEstructure/TableHojas'
 import axios from 'axios';
 import { BASE_URL } from '../../helpers/config';
+import { toast } from 'react-toastify';
 import { StepsProvider, useSteps } from '../../Components/Containers/Configurar/Contracts/PagesEstructure/StepsContext';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import SaveIcon from '@mui/icons-material/Save';
@@ -28,7 +29,7 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
 
   const { steps } = useSteps();
 
-  const { setSteps } = useSteps(); // Destructure to get setTableData
+  const { setSteps } = useSteps(); 
 
   const { id } = useParams();
 
@@ -90,11 +91,13 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
 
 
 
-
+ 
   const sendData = async () => {
     console.log('Data sent to API:', steps);
-    //console.log('tabledata', useTableData);
 
+      const response = await axios.post(`${BASE_URL}/dailyStructure/create/${id}`, steps);
+       toast.success('Campo creado exitosamente');
+   // console.log('id', id);
   };
 
   const stepStyle = {
