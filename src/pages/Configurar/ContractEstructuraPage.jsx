@@ -159,8 +159,9 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
             sx={{ marginLeft: '2rem' }}
             variant="contained"
             onClick={() => {
-              // sendData();
+              
               if (window.confirm('¿Estás seguro de guardar los cambios?')) {
+                sendData();
                 alert('Cambios guardados exitosamente');
               }
             }}

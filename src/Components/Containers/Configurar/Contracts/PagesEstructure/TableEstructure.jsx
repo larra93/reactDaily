@@ -36,6 +36,7 @@ import { useSteps } from './StepsContext';
 import FeaturedPlayListIcon from '@mui/icons-material/FeaturedPlayList';
 import { render } from 'react-dom';
 import { set } from 'react-hook-form';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 
 //list of field types
@@ -48,7 +49,7 @@ const ListTypes = [
 ];
 
 
-const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fields, idSheet, idContract }) => {
+const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fields, idSheet, idContract, GuardarDropdown }) => {
   const [validationErrors, setValidationErrors] = useState({});
 
   const idSheet2 = idSheet
@@ -133,29 +134,48 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
   };
 
   const handleCloseModal = () => {
+
     setIsModalOpen(false);
-  };
-
-  const handleSaveDropdownList = (updatedDropdownLists) => {
-    setUpdatedDropdownLists(updatedDropdownLists);
-    console.log('currentRow:', updatedDropdownLists);
 
   };
 
-const addDropdown = () => {
-  setCurrentRow({ ...currentRow, dropdown_lists: [...currentRow.dropdown_lists, ""] });
- // setCurrentRow( ...currentRow, {dropdown_lists: [...currentRow.dropdown_lists, "" ]});
-  console.log('currentRow:', currentRow);
-  
-}
 
-const handleChange = (e, index) => {
-  const { name, value } = e.target;
-  const list = [...currentRow.dropdown_lists];
-  list[index] = value;
-  setCurrentRow({ ...currentRow, dropdown_lists: list });
-  console.log('currentRow:', currentRow);                                            
-}
+  const addDropdown = () => {
+    const newDropdown = {
+      value: "",
+      field_id: currentRow.id,
+      id: (Math.random() + 1).toString(36).substring(7),
+    };
+    setCurrentRow({ ...currentRow, dropdown_lists: [...currentRow.dropdown_lists, newDropdown] });
+    // setCurrentRow( ...currentRow, {dropdown_lists: [...currentRow.dropdown_lists, "" ]});
+    console.log('addDropdown:', currentRow);
+
+  }
+
+  const handleChange = (e, index) => {
+    const { name, value } = e.target;
+    const list = [...currentRow.dropdown_lists];
+    list[index].value = value;
+    setCurrentRow({ ...currentRow, dropdown_lists: list });
+    // console.log('currentRow:', currentRow);                                            
+  }
+
+  const handleRemoveDropdown = (index) => {
+
+    const list = [...currentRow.dropdown_lists];
+    console.log('list:', list);
+
+    list.splice(index, 1);
+    setCurrentRow({ ...currentRow, dropdown_lists: list });
+    console.log('currentRow:', currentRow);
+  }
+
+  const handleGuardarDropdown = async() => {
+    console.log('ENTRO')
+    setIsModalOpen(false);
+    GuardarDropdown(currentRow);
+    
+  }
 
 
   const renderModal = () => (
@@ -164,38 +184,53 @@ const handleChange = (e, index) => {
       onClose={handleCloseModal}
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflowY: 'auto', // Add overflowY property to enable vertical scroll
+      }}
     >
 
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-
-        <Box sx={{ bgcolor: 'background.paper', boxShadow: 24, p: 4, width: '90%', borderRadius: 2 }}>
-          <Box sx={{ margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
-            <Button startIcon={<SaveIcon />} sx={{ borderColor: '#388e3c' }} variant="outlined" onClick={handleCloseModal} >Cerrar</Button>
-          </Box>
-          <Box>
-          { currentRow && currentRow.dropdown_lists.length > 0 && currentRow.dropdown_lists.map((value, index) => (
-            //<div key={index}>
-             // <input>{value}</input></div>
-             <Box key={index}>
+      <Box sx={{ bgcolor: 'background.paper', boxShadow: 24, paddingLeft: 4, width: '90%', borderRadius: 2, marginTop: '3rem' }}>
+        <h2>Modificar Lista Desplegable</h2>
+        <Box sx={{ margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '0.5rem' }}>
+          <Button
+            id="guardarCambiosButton"
+            startIcon={<SaveIcon />}
+            style={{ backgroundColor: '#388e3c' }}
+            sx={{ marginLeft: '2rem' }}
+            variant="contained"
+            onClick={ handleGuardarDropdown}
+          >
+            Guardar Cambios
+          </Button>
+          <Button color="error" startIcon={<CancelIcon />} sx={{ margin: '2rem' }} variant="outlined" onClick={handleCloseModal}>
+            Cancelar Cambios
+          </Button>
+        </Box>
+        <Box>
+          {currentRow && currentRow.dropdown_lists.length > 0 && currentRow.dropdown_lists.map((value, index) => (
+            <Box key={index} sx={{ margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '0.5rem' }}>
               <TextField
-                label="Input"
+                sx={{ minHeight: '30px', minWidth: '80%' }} // Adjust the minHeight property to reduce the height of the TextField
+                label="Item"
                 variant="outlined"
+                size="small"
                 onChange={(e) => handleChange(e, index)}
-                value={value}
+                value={value.value}
               />
-
-<Button startIcon={<SaveIcon />} sx={{ borderColor: '#388e3c' }} variant="outlined" onClick={addDropdown} >Borrar</Button>
-               </Box>
-          ))}
-          <Box>
+              <Button sx={{ minHeight: '38px' }} color="error" startIcon={<SaveIcon />} variant="outlined" onClick={() => handleRemoveDropdown(index)}>
+                Borrar
+              </Button>
             </Box>
-          <Button startIcon={<SaveIcon />} sx={{ borderColor: '#388e3c' }} variant="outlined" onClick={addDropdown} >Add</Button>
-          </Box>
-          <Box>
-          <Button startIcon={<SaveIcon />} sx={{ borderColor: '#388e3c' }} variant="outlined" onClick={handleCloseModal} >Submit</Button>
+          ))}
+          <Box sx={{ margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '2rem' }}>
+            <Button startIcon={<SaveIcon />} sx={{ borderColor: '#388e3c' }} variant="outlined" onClick={addDropdown}>
+              Agregar Otro Item
+            </Button>
           </Box>
         </Box>
-
       </Box>
     </Modal>
   );
@@ -467,6 +502,17 @@ const TableEstructure = ({ data, currentStep, idContract }) => {
     table.setEditingRow(null); // Exit editing mode
   };
 
+
+  const GuardarDropdown = async (currentRow) => {
+
+    const newSteps = [...steps];
+    newSteps[currentStep].fields = steps[currentStep].fields.map((field) =>
+      field.id === currentRow.id ? { ...currentRow } : field
+    );
+    setSteps(newSteps); // Actualizar el estado global
+    // console.log('newSteps:', newSteps);
+  }
+
   const openDeleteConfirmModal = (row) => {
     if (window.confirm('Are you sure you want to delete this Field?')) {
       const newSteps = [...steps];
@@ -481,7 +527,7 @@ const TableEstructure = ({ data, currentStep, idContract }) => {
   const sendData = async () => {
 
     console.log('Data sent to API:', steps[currentStep]);
-    //console.log('tabledata', useTableData);
+    console.log('tabledata', useTableData);
 
   };
 
@@ -493,7 +539,8 @@ const TableEstructure = ({ data, currentStep, idContract }) => {
         idContract={idContract}
         handleCreateField={handleCreateField}
         handleSaveField={handleSaveField}
-        openDeleteConfirmModal={openDeleteConfirmModal} />
+        openDeleteConfirmModal={openDeleteConfirmModal}
+        GuardarDropdown={GuardarDropdown} />
     </QueryClientProvider>);
 
 
