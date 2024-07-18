@@ -8,11 +8,15 @@ import {
 import {
   Box,
   Button,
+  TextField,
   DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
   Tooltip,
+  Typography,
+  Modal,
+  Chip
 } from '@mui/material';
 import {
   QueryClient,
@@ -23,11 +27,15 @@ import {
 } from '@tanstack/react-query';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ListIcon from '@mui/icons-material/List';
+import SaveIcon from '@mui/icons-material/Save';
 import { BASE_URL } from '../../../../../helpers/config';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useSteps } from './StepsContext';
 import FeaturedPlayListIcon from '@mui/icons-material/FeaturedPlayList';
+import { render } from 'react-dom';
+import { set } from 'react-hook-form';
 
 
 //list of field types
@@ -108,37 +116,90 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
               ...validationErrors,
               description: undefined,
             }),
-            type: 'number', // set the type to 'number' for numeric input
+          type: 'number', // set the type to 'number' for numeric input
         },
       },
     ],
     [validationErrors],
   );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentRow, setCurrentRow] = useState(null);
+  const [newItem, setNewItem] = useState('');
+  const [updatedDropdownLists, setUpdatedDropdownLists] = useState([]);
 
-/*
-  //call CREATE hook
-  const { mutateAsync: createField, isPending: isCreatingField } =
-    useCreateField(idSheet2, idContract2);
+  const handleOpenModal = (row) => {
+    setCurrentRow(row.original);
+    setIsModalOpen(true);
+  };
 
-  //call READ hook
-  const {
-    data: fetchedFields = [],
-    isError: isLoadingFieldsError,
-    isFetching: isFetchingFields,
-    isLoading: isLoadingFields,
-  } = useGetFields(idSheet2, idContract2, fields);
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleSaveDropdownList = (updatedDropdownLists) => {
+    setUpdatedDropdownLists(updatedDropdownLists);
+    console.log('currentRow:', updatedDropdownLists);
+
+  };
+
+const addDropdown = () => {
+  setCurrentRow({ ...currentRow, dropdown_lists: [...currentRow.dropdown_lists, ""] });
+ // setCurrentRow( ...currentRow, {dropdown_lists: [...currentRow.dropdown_lists, "" ]});
+  console.log('currentRow:', currentRow);
+  
+}
+
+const handleChange = (e, index) => {
+  const { name, value } = e.target;
+  const list = [...currentRow.dropdown_lists];
+  list[index] = value;
+  setCurrentRow({ ...currentRow, dropdown_lists: list });
+  console.log('currentRow:', currentRow);                                            
+}
 
 
-  //call UPDATE hook
-  const { mutateAsync: updateField, isPending: isUpdatingField } =
-    useUpdateField(fields);
+  const renderModal = () => (
+    <Modal
+      open={isModalOpen}
+      onClose={handleCloseModal}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
 
-  //call DELETE hook
-  const { mutateAsync: deleteField, isPending: isDeletingField } =
-    useDeleteField();
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
 
+        <Box sx={{ bgcolor: 'background.paper', boxShadow: 24, p: 4, width: '90%', borderRadius: 2 }}>
+          <Box sx={{ margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
+            <Button startIcon={<SaveIcon />} sx={{ borderColor: '#388e3c' }} variant="outlined" onClick={handleCloseModal} >Cerrar</Button>
+          </Box>
+          <Box>
+          { currentRow && currentRow.dropdown_lists.length > 0 && currentRow.dropdown_lists.map((value, index) => (
+            //<div key={index}>
+             // <input>{value}</input></div>
+             <Box key={index}>
+              <TextField
+                label="Input"
+                variant="outlined"
+                onChange={(e) => handleChange(e, index)}
+                value={value}
+              />
 
-*/
+<Button startIcon={<SaveIcon />} sx={{ borderColor: '#388e3c' }} variant="outlined" onClick={addDropdown} >Borrar</Button>
+               </Box>
+          ))}
+          <Box>
+            </Box>
+          <Button startIcon={<SaveIcon />} sx={{ borderColor: '#388e3c' }} variant="outlined" onClick={addDropdown} >Add</Button>
+          </Box>
+          <Box>
+          <Button startIcon={<SaveIcon />} sx={{ borderColor: '#388e3c' }} variant="outlined" onClick={handleCloseModal} >Submit</Button>
+          </Box>
+        </Box>
+
+      </Box>
+    </Modal>
+  );
+
   const table = useMaterialReactTable({
     columns,
     data: fields,
@@ -146,18 +207,7 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
     editDisplayMode: 'row', //default ('row', 'cell', 'table', and 'custom' are also available)
     enableEditing: true,
     initialState: { columnVisibility: { id: false } },
-    getRowId: (row) => row.id,/* 
-    muiToolbarAlertBannerProps: isLoadingFieldsError
-      ? {
-        color: 'error',
-        children: 'Error loading data',
-      }
-      : undefined,
-    muiTableContainerProps: {
-      sx: {
-        minHeight: '500px',
-      },
-    },*/
+    getRowId: (row) => row.id,
     onCreatingRowCancel: () => setValidationErrors({}),
     onCreatingRowSave: handleCreateField,
     onEditingRowCancel: () => setValidationErrors({}),
@@ -185,7 +235,6 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
         <DialogContent
           sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
         >
-          {internalEditComponents} {/* or render custom edit components here */}
         </DialogContent>
         <DialogActions>
           <MRT_EditActionButtons variant="text" table={table} row={row} />
@@ -199,6 +248,13 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
             <EditIcon />
           </IconButton>
         </Tooltip>
+        {row.original.field_type === 'list' && (
+          <Tooltip title="Listas">
+            <IconButton onClick={() => handleOpenModal(row)}>
+              <ListIcon />
+            </IconButton>
+          </Tooltip>
+        )}
         <Tooltip title="Delete">
           <IconButton color="error" onClick={() => openDeleteConfirmModal(row)}>
             <DeleteIcon />
@@ -208,8 +264,10 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
     ),
     renderTopToolbarCustomActions: ({ table }) => (
       <Box>
-        <Button style={{backgroundColor: '#01579b'}}
-          variant="contained"   startIcon={<FeaturedPlayListIcon />} 
+        <Button
+          style={{ backgroundColor: '#01579b' }}
+          variant="contained"
+          startIcon={<FeaturedPlayListIcon />}
           onClick={() => {
             table.setCreatingRow(true); //simplest way to open the create row modal with no default values
             //or you can pass in a row object to set default values with the `createRow` helper function
@@ -224,18 +282,24 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
         </Button>
       </Box>
     ),
-  /*  state: { 
-      isLoading: isLoadingFields,
-      isSaving: isCreatingField || isUpdatingField || isDeletingField,
-      showAlertBanner: isLoadingFieldsError,
-      showProgressBars: isFetchingFields,
-    }, */
+    /*  state: { 
+        isLoading: isLoadingFields,
+        isSaving: isCreatingField || isUpdatingField || isDeletingField,
+        showAlertBanner: isLoadingFieldsError,
+        showProgressBars: isFetchingFields,
+      }, */
   });
 
-  return <MaterialReactTable table={table} />;
-};
+  return (
+    <>
+      <MaterialReactTable table={table} />
 
-/* ESTOS NO LO ESTAMOS USANDO YA QUE SE MODIFICA TODO EN ELS ERVIDOR Y LUEGO SE ENVIA CON EL BOTON DE GUARDAR
+      {renderModal()}
+    </>
+  );
+}
+
+/* ESTOS NO LO ESTAMOS USANDO YA QUE SE MODIFICA TODO EN ELSERVIDOR Y LUEGO SE ENVIA CON EL BOTON DE GUARDAR
 //READ hook (get fields from api)
 function useGetFields(idSheet, idContract, fields) {
 
@@ -395,7 +459,7 @@ const TableEstructure = ({ data, currentStep, idContract }) => {
 
     const newSteps = [...steps];
 
-     newSteps[currentStep].fields = steps[currentStep].fields.map((field) =>
+    newSteps[currentStep].fields = steps[currentStep].fields.map((field) =>
       field.id === row.id ? { ...field, ...values } : field
     );
     console.log('newSteps:', newSteps);
@@ -406,7 +470,7 @@ const TableEstructure = ({ data, currentStep, idContract }) => {
   const openDeleteConfirmModal = (row) => {
     if (window.confirm('Are you sure you want to delete this Field?')) {
       const newSteps = [...steps];
-      
+
       newSteps[currentStep].fields = steps[currentStep].fields.filter((field) => field.id !== row.original.id);
       console.log('newSteps:', newSteps);
 
@@ -414,15 +478,12 @@ const TableEstructure = ({ data, currentStep, idContract }) => {
     }
   };
 
-
   const sendData = async () => {
 
     console.log('Data sent to API:', steps[currentStep]);
     //console.log('tabledata', useTableData);
 
   };
-
-
 
   return (
     <QueryClientProvider client={queryClient}>

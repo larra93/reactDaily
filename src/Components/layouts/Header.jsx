@@ -262,7 +262,7 @@ export default function Header() {
 
                         <Collapse in={openDailys} timeout="auto" unmountOnExit>
                             <List component="div" disablePadding sx={{ color: 'white', backgroundColor: '#312d2d' }}>
-                                <ListItem component={Link} to="/EECCDailys" key="Ingresar Dailys" sx={{ color: 'white' }}>
+                                <ListItem component={Link} to="/EECCContracts" key="Ingresar Dailys" sx={{ color: 'white' }}>
                                     <ListItemButton sx={{ pl: 4 }}>
                                         <ListItemIcon sx={{ color: 'white' }}>
                                             <ContentPasteGoIcon />

@@ -94,8 +94,6 @@ const handleStepClick = (index) => {
         return <TableEECC  data={steps[step]} idContract = {id} />;
   };
 
-
-
   return (
     <Box
    // onSubmit=""
@@ -118,7 +116,6 @@ const handleStepClick = (index) => {
             ))}
           </Stepper>
           <div>
-
               <React.Fragment>
                 <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                   <Button

@@ -146,20 +146,30 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
   };
 
   return (
-    <Box
-      // onSubmit=""
-      sx={{ width: '95%', margin: '0 auto', justifyContent: 'center', alignItems: 'center' }}
-        >
+    <Box sx={{ width: '95%', margin: '0 auto', justifyContent: 'center', alignItems: 'center' }}>
       <h2>Modificar Estructura Daily</h2>
       <Box
         sx={{ width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center', paddingBottom: '2rem' }}
       >
-        <Button  // este boton deberia enviar a la bbdd los cambios realizados con la variable steps
-         startIcon={<SaveIcon />} style={{backgroundColor: '#388e3c'}} sx={{ marginLeft: '2rem' }} variant="contained" onClick={sendData}>
-          Guardar Cambios
-        </Button>
+        <Tooltip title="Guardar Cambios">
+          <Button
+            id="guardarCambiosButton"
+            startIcon={<SaveIcon />}
+            style={{ backgroundColor: '#388e3c' }}
+            sx={{ marginLeft: '2rem' }}
+            variant="contained"
+            onClick={() => {
+              // sendData();
+              if (window.confirm('¿Estás seguro de guardar los cambios?')) {
+                alert('Cambios guardados exitosamente');
+              }
+            }}
+          >
+            Guardar Cambios
+          </Button>
+        </Tooltip>
 
-        
+       
         <Button  // este boton deberia recargar la pagina con un boton de alerta asi la variable step retorna a como esta en la base de datos
           color="error"  startIcon={<CancelIcon />}   sx={{ margin: '2rem' }}  variant="outlined" onClick={handleOpenModal}>
           Cancelar Cambios
