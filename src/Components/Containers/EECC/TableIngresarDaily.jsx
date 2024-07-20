@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import {
   MRT_EditActionButtons,
   MaterialReactTable,
-  // createRow,
   useMaterialReactTable,
 } from 'material-react-table';
 import {
@@ -18,156 +17,133 @@ import {
   QueryClient,
   QueryClientProvider,
   useMutation,
-  useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { BASE_URL } from '../../../helpers/config';
 import axios from 'axios';
-
-
-//list of field types
-const ListTypes = [
-  'text',
-  'integer',
-  'list',
-  'hour',
-  'date'
-];
-
+import { BASE_URL } from '../../../helpers/config';
 
 const TableP = ({ fields, idSheet, idContract }) => {
   const [validationErrors, setValidationErrors] = useState({});
 
-var data = []
-var datafetched = [] 
-const idSheet2 = idSheet
-const idContract2 = idContract
+  // Extraer valores y transformarlos en filas para la tabla
+  const rows = useMemo(() => {
+    if (!fields) return [];
+    
+    const rowMap = {};
 
-//console.log('fields', fields)
+    fields.forEach(field => {
+      field.values.forEach(value => {
+        if (!rowMap[value.row]) {
+          rowMap[value.row] = { id: value.row };
+        }
+        rowMap[value.row][field.name] = value.value;
+      });
+    });
 
-
-const columns = useMemo(() => {
-  // Asegurarse de que fields es un array antes de intentar mapearlo.
-  // Si fields es undefined, se usa un array vacío como valor predeterminado.
-  const safeFields = fields || [];
-  const safeValidationErrors = validationErrors || {};
-
-  return safeFields.map((field) => ({
-    accessorKey: field.name,
-    header: field.name,
-    muiEditTextFieldProps: {
-      required: true,
-      error: !!safeValidationErrors[field.name],
-      helperText: safeValidationErrors[field.name],
-      onFocus: () =>
-        setValidationErrors({
-          ...safeValidationErrors,
-          [field.name]: undefined,
-        }),
-    },
-  }));
-}, [fields, validationErrors]);
+    return Object.values(rowMap);
+  }, [fields]);
 
 
-  //call CREATE hook
-  const { mutateAsync: createField, isPending: isCreatingField } =
-    useCreateField();
+  const columns = useMemo(() => {
+    const safeFields = fields || [];
+    const safeValidationErrors = validationErrors || {};
 
-  //call READ hook
-  var {
-    data: data,
-    isError: isLoadingFieldsError,
-    isFetching: isFetchingFields,
-    isLoading: isLoadingFields,
-  } = useGetData(idSheet2, idContract2);
+    return safeFields.map((field) => ({
+      accessorKey: field.name,
+      header: field.name,
+      muiEditTextFieldProps: {
+        required: true,
+        error: !!safeValidationErrors[field.name],
+        helperText: safeValidationErrors[field.name],
+        onFocus: () =>
+          setValidationErrors({
+            ...safeValidationErrors,
+            [field.name]: undefined,
+          }),
+      },
+    }));
+  }, [fields, validationErrors]);
 
+  // Hooks y manejadores de Crear, Actualizar, Eliminar
+  const { mutateAsync: createField, isPending: isCreatingField } = useCreateField();
+  const { mutateAsync: updateField, isPending: isUpdatingField } = useUpdateField();
+  const { mutateAsync: deleteField, isPending: isDeletingField } = useDeleteField();
 
-  //call UPDATE hook
-  const { mutateAsync: updateField, isPending: isUpdatingField } =
-    useUpdateField();
-
-  //call DELETE hook
-  const { mutateAsync: deleteField, isPending: isDeletingField } =
-    useDeleteField();
-
-  //CREATE action
   const handleCreateField = async ({ values, table }) => {
-    const newValidationErrors = validateField(values);
-    if (Object.values(newValidationErrors).some((error) => error)) {
-      setValidationErrors(newValidationErrors);
-      return;
-    }
-    setValidationErrors({});
-    await createField(values);
-    table.setCreatingRow(null); //exit creating mode
+    const rowId = table.getState().creatingRowId;
+    const maxRow = Math.max(...rows.map(row => row.id), 0);
+    const newRowId = maxRow + 1;
+
+    const transformedValues = Object.keys(values).map((key) => {
+      const field = fields.find((f) => f.name === key);
+      return {
+        field_id: field ? field.id : null,
+        value: values[key],
+        daily_sheet_id: idSheet,
+        daily_id: idContract,
+        row: newRowId
+      };
+    });
+
+    await createField(transformedValues);
+    table.setCreatingRow(null);
   };
 
-  //UPDATE action
-  const handleSaveField = async ({ values, table }) => {
-    const newValidationErrors = validateField(values);
-    if (Object.values(newValidationErrors).some((error) => error)) {
-      setValidationErrors(newValidationErrors);
-      return;
-    }
-    setValidationErrors({});
-    await updateField(values);
-    table.setEditingRow(null); //exit editing mode
+  const handleSaveField = async ({ values, row, table }) => {
+    const rowId = row.id;
+    const transformedValues = Object.keys(values).map((key) => {
+      console.log('valuesaaa', values)
+      const field = fields.find((f) => f.name === key);
+      const existingValue = field.values.find((v) => v.row === rowId);
+      return {
+        id: existingValue.id, 
+        field_id: field ? field.id : null,
+        value: values[key],
+        daily_sheet_id: idSheet,
+        daily_id: idContract,
+        row: rowId
+      };
+    });
+    await updateField(transformedValues);
+    table.setEditingRow(null);
   };
 
-  //DELETE action
   const openDeleteConfirmModal = (row) => {
-    if (window.confirm('Are you sure you want to delete this Field?')) {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este campo?')) {
       deleteField(row.original.id);
     }
   };
 
-
   const table = useMaterialReactTable({
     columns,
-    data: [],
-    createDisplayMode: 'row', //default ('row', and 'custom' are also available)
-    editDisplayMode: 'row', //default ('row', 'cell', 'table', and 'custom' are also available)
+    data: rows,
+    createDisplayMode: 'row',
+    editDisplayMode: 'row',
     enableEditing: true,
-    getRowId: (row) => row.id, 
-    muiToolbarAlertBannerProps: isLoadingFieldsError
-      ? {
-        color: 'error',
-        children: 'Error loading data',
-      }
-      : undefined,
-    muiTableContainerProps: {
-      sx: {
-        minHeight: '500px',
-      },
-    },
+    getRowId: (row) => row.id,
+    muiTableContainerProps: { sx: { minHeight: '500px' } },
     onCreatingRowCancel: () => setValidationErrors({}),
     onCreatingRowSave: handleCreateField,
     onEditingRowCancel: () => setValidationErrors({}),
     onEditingRowSave: handleSaveField,
-    //optionally customize modal content
     renderCreateRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
         <DialogTitle variant="h3">Crear nueva columna</DialogTitle>
-        <DialogContent
-          sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-        >
-          {internalEditComponents} {/* or render custom edit components here */}
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {internalEditComponents}
         </DialogContent>
         <DialogActions>
           <MRT_EditActionButtons variant="text" table={table} row={row} />
         </DialogActions>
       </>
     ),
-    //optionally customize modal content
     renderEditRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Edit Field</DialogTitle>
-        <DialogContent
-          sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
-        >
-          {internalEditComponents} {/* or render custom edit components here */}
+        <DialogTitle variant="h3">Editar campo</DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {internalEditComponents}
         </DialogContent>
         <DialogActions>
           <MRT_EditActionButtons variant="text" table={table} row={row} />
@@ -176,12 +152,12 @@ const columns = useMemo(() => {
     ),
     renderRowActions: ({ row, table }) => (
       <Box sx={{ display: 'flex', gap: '1rem' }}>
-        <Tooltip title="Edit">
+        <Tooltip title="Editar">
           <IconButton onClick={() => table.setEditingRow(row)}>
             <EditIcon />
           </IconButton>
         </Tooltip>
-        <Tooltip title="Delete">
+        <Tooltip title="Eliminar">
           <IconButton color="error" onClick={() => openDeleteConfirmModal(row)}>
             <DeleteIcon />
           </IconButton>
@@ -189,136 +165,89 @@ const columns = useMemo(() => {
       </Box>
     ),
     renderTopToolbarCustomActions: ({ table }) => (
-      <Button
-        variant="contained"
-        onClick={() => {
-          table.setCreatingRow(true); //simplest way to open the create row modal with no default values
-          //or you can pass in a row object to set default values with the `createRow` helper function
-          // table.setCreatingRow(
-          //   createRow(table, {
-          //     //optionally pass in default values for the new row, useful for nested data or other complex scenarios
-          //   }),
-          // );
-        }}
-      >
+      <Button variant="contained" onClick={() => table.setCreatingRow(true)}>
         Crear nueva columna
       </Button>
     ),
     state: {
-      isLoading: isLoadingFields,
       isSaving: isCreatingField || isUpdatingField || isDeletingField,
-      showAlertBanner: isLoadingFieldsError,
-      showProgressBars: isFetchingFields,
     },
   });
 
   return <MaterialReactTable table={table} />;
 };
 
-
-//READ hook (get fields from api)
-function useGetData(idSheet, idContract) {
-  return useQuery({
-    queryKey: ['data'],
-    queryFn: async () => {
-/*
-      try {
-        const response = await axios.get(`${BASE_URL}/contracts/${idContract}/dailySheet`)
-//ordeno las fields segun su step
-        const fields = response.data.steps[idSheet].fields.sort((a, b) => a.step - b.step);
-        // console.log('fields', fields)
-
-       return fields;
-       
-    } catch (error) {
-        console.error('Error al obtener pasos y campos:', error);
-    }
-*/ return [];
-    },
-    refetchOnWindowFocus: false,
-  });
-}
-
-//CREATE hook (post new Field to api)
+// CREATE hook
 function useCreateField() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (Field) => {
-      //send api update request here
-      console.log('Field', Field);
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
+    mutationFn: async (fieldData) => {
+      const response = await axios.post(`${BASE_URL}/values`, fieldData);
+      return response.data;
     },
-    //client side optimistic update
-    onMutate: (newFieldInfo) => {
-      queryClient.setQueryData(['Fields'], (prevFields) => [
-        ...prevFields,
-        {
-          ...newFieldInfo,
-          id: (Math.random() + 1).toString(36).substring(7),
-        },
-      ]);
+    onSuccess: () => {
+      queryClient.invalidateQueries('Fields'); // Invalidar consultas para volver a obtener datos
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['Fields'] }), //refetch Fields after mutation, disabled for demo
   });
 }
 
-//UPDATE hook (put Field in api)
-function useUpdateField() {
+// UPDATE hook
+function useUpdateField() { 
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (Field) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
+    mutationFn: async (field) => {
+      console.log('updata', field);
+      const response = await axios.put(`${BASE_URL}/updateValues`, field);
+      return response.data;
     },
-    //client side optimistic update
-    onMutate: (newFieldInfo) => {
+    onMutate: async (newFieldInfo) => {
+      const previousFields = queryClient.getQueryData(['Fields']);
       queryClient.setQueryData(['Fields'], (prevFields) =>
         prevFields?.map((prevField) =>
           prevField.id === newFieldInfo.id ? newFieldInfo : prevField,
         ),
       );
+      return { previousFields };
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['Fields'] }), //refetch Fields after mutation, disabled for demo
+    onError: (error, newFieldInfo, context) => {
+      queryClient.setQueryData(['Fields'], context.previousFields);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(['Fields']);
+    },
   });
 }
 
-//DELETE hook (delete Field in api)
+// DELETE hook
 function useDeleteField() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (FieldId) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
+      await axios.delete(`${BASE_URL}/values/${FieldId}`);
       return Promise.resolve();
     },
-    //client side optimistic update
     onMutate: (FieldId) => {
       queryClient.setQueryData(['Fields'], (prevFields) =>
         prevFields?.filter((Field) => Field.id !== FieldId),
       );
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['Fields'] }), //refetch Fields after mutation, disabled for demo
   });
 }
 
 const queryClient = new QueryClient();
 
 const Table = ({ data, idContract }) => {
-  if(!data) return null
-//tomo las fields y las ordeno segun su step
+  if (!data) return null;
   const fields = data.fields.sort((a, b) => a.step - b.step);
-  const idSheet = data.idSheet
+  const idSheet = data.idSheet;
 
-  return (<QueryClientProvider client={queryClient}>
-    <TableP fields ={fields}  idSheet = {idSheet} idContract = {idContract}/>
-  </QueryClientProvider>);
-
-
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TableP fields={fields} idSheet={idSheet} idContract={idContract} />
+    </QueryClientProvider>
+  );
 };
-
-
 
 export default Table;
 
