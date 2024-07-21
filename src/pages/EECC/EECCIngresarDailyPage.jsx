@@ -91,7 +91,7 @@ const handleStepClick = (index) => {
 
   const formContent = (step) => {
     
-        return <TableEECC  data={steps[step]} idContract = {id} />;
+        return <TableEECC  data={steps[step]} idDaily = {id} />;
   };
 
   return (

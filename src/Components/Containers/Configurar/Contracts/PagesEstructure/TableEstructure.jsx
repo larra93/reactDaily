@@ -148,7 +148,6 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
     };
     setCurrentRow({ ...currentRow, dropdown_lists: [...currentRow.dropdown_lists, newDropdown] });
     // setCurrentRow( ...currentRow, {dropdown_lists: [...currentRow.dropdown_lists, "" ]});
-    console.log('addDropdown:', currentRow);
 
   }
 
@@ -157,21 +156,17 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
     const list = [...currentRow.dropdown_lists];
     list[index].value = value;
     setCurrentRow({ ...currentRow, dropdown_lists: list });
-    // console.log('currentRow:', currentRow);                                            
   }
 
   const handleRemoveDropdown = (index) => {
 
     const list = [...currentRow.dropdown_lists];
-    console.log('list:', list);
 
     list.splice(index, 1);
     setCurrentRow({ ...currentRow, dropdown_lists: list });
-    console.log('currentRow:', currentRow);
   }
 
   const handleGuardarDropdown = async() => {
-    console.log('ENTRO')
     setIsModalOpen(false);
     GuardarDropdown(currentRow);
     
@@ -334,116 +329,6 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
   );
 }
 
-/* ESTOS NO LO ESTAMOS USANDO YA QUE SE MODIFICA TODO EN ELSERVIDOR Y LUEGO SE ENVIA CON EL BOTON DE GUARDAR
-//READ hook (get fields from api)
-function useGetFields(idSheet, idContract, fields) {
-
-  return useQuery({
-    queryKey: ['fields'],
-    queryFn: async () => {
-      console.log('fields', fields)
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve(fields);
-
-      // const response = await axios.get(`${BASE_URL}/contracts/${idContract}/dailySheet`)
-      //obtengo los fields del dailysheet correspondiente y los ordeno segun su step
-      // const step = response.data.steps.find(step => step.idSheet === idSheet);
-      //  const fields = step.fields.sort((a, b) => a.step - b.step);
-
-      //return fields;
-
-
-    },
-    refetchOnWindowFocus: false,
-  });
-}
-
-//CREATE hook (post new Field to api)
-function useCreateField(idSheet, idContract) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (Field) => {
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-        return Promise.resolve();
-        // Intenta enviar la solicitud de creación a la API
-        // const response = await axios.post(`${BASE_URL}/fields/create/${idSheet}`, Field);
-        //toast.success('Campo creado exitosamente');
-        return response.data; // Retorna los datos de la respuesta
-      } catch (error) {
-        // Maneja cualquier error que ocurra durante la solicitud
-        console.error('Error al crear el campo:', error.response ? error.response.data : error.message);
-        toast.error(`Error al crear el campo: ${error.response ? error.response.data.message : error.message}`);
-        throw error; // Relanza el error para que useMutation pueda manejarlo
-      }
-    },
-    //client side optimistic update
-    onMutate: (newFieldInfo) => {
-
-      queryClient.setQueryData(['fields'], (prevFields = []) => [
-
-        ...prevFields,
-        {
-          ...newFieldInfo,
-          id: (Math.random() + 1).toString(36).substring(7),
-        },
-      ]);
-    },
-    onSettled: () => { queryClient.invalidateQueries({ queryKey: ['fields'] }); } //refetch Fields after mutation
-  });
-}
-
-//UPDATE hook (put Field in api)
-function useUpdateField() {
-  const queryClient = useQueryClient();
-  return useMutation({
-
-    mutationFn: async ({ id, ...Field }) => {
-      try {
-        // Intenta enviar la solicitud de creación a la API
-        const response = await axios.post(`${BASE_URL}/fields/update/${id}`, Field);
-        toast.success('Campo creado exitosamente');
-        return response.data; // Retorna los datos de la respuesta
-      } catch (error) {
-        // Maneja cualquier error que ocurra durante la solicitud
-        console.error('Error al crear el campo:', error.response ? error.response.data : error.message);
-        toast.error(`Error al crear el campo: ${error.response ? error.response.data.message : error.message}`);
-        throw error; // Relanza el error para que useMutation pueda manejarlo
-      }
-    },
-    //client side optimistic update
-    onMutate: (newFieldInfo) => {
-      queryClient.setQueryData(['fields'], (prevFields) =>
-        prevFields?.map((prevField) =>
-          prevField.id === newFieldInfo.id ? newFieldInfo : prevField,
-        ),
-      );
-    },
-
-    // onSettled: () => {queryClient.invalidateQueries({ queryKey: ['fields'] });}
-    //refetch Fields after mutation
-  });
-}
-
-//DELETE hook (delete Field in api)
-function useDeleteField() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (FieldId) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
-    },
-    //client side optimistic update
-    onMutate: (FieldId) => {
-      queryClient.setQueryData(['Fields'], (prevFields) =>
-        prevFields?.filter((Field) => Field.id !== FieldId),
-      );
-    },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['Fields'] }), //refetch Fields after mutation, disabled for demo
-  });
-}
-*/
 const queryClient = new QueryClient();
 
 const TableEstructure = ({ data, currentStep, idContract }) => {
@@ -497,7 +382,6 @@ const TableEstructure = ({ data, currentStep, idContract }) => {
     newSteps[currentStep].fields = steps[currentStep].fields.map((field) =>
       field.id === row.id ? { ...field, ...values } : field
     );
-    console.log('newSteps:', newSteps);
     setSteps(newSteps); // Actualizar el estado global
     table.setEditingRow(null); // Exit editing mode
   };
@@ -510,7 +394,6 @@ const TableEstructure = ({ data, currentStep, idContract }) => {
       field.id === currentRow.id ? { ...currentRow } : field
     );
     setSteps(newSteps); // Actualizar el estado global
-    // console.log('newSteps:', newSteps);
   }
 
   const openDeleteConfirmModal = (row) => {
@@ -524,12 +407,7 @@ const TableEstructure = ({ data, currentStep, idContract }) => {
     }
   };
 
-  const sendData = async () => {
 
-    console.log('Data sent to API:', steps[currentStep]);
-    console.log('tabledata', useTableData);
-
-  };
 
   return (
     <QueryClientProvider client={queryClient}>

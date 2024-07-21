@@ -25,11 +25,13 @@ import CancelIcon from '@mui/icons-material/Cancel';
 
 const ContractFormato = ({ onSubmit, users, companies }) => {
   const [activeStep, setActiveStep] = React.useState(0);
+  const [objetoInicial, setObjetoInicial] = useState([]);
+
   const [completed, setCompleted] = React.useState({});
 
   const { steps } = useSteps();
 
-  const { setSteps } = useSteps(); 
+  const { setSteps } = useSteps();
 
   const { id } = useParams();
 
@@ -61,6 +63,11 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
         const response = await axios.get(`${BASE_URL}/contracts/${id}/dailySheet`)
 
         setSteps(response.data.steps);
+        if (objetoInicial.length === 0) {
+          // Realiza una copia profunda de response.data.steps antes de establecer el estado
+          const stepsDeepCopy = JSON.parse(JSON.stringify(response.data.steps));
+          setObjetoInicial(stepsDeepCopy);
+        }
 
       } catch (error) {
         console.error('Error al obtener pasos y campos:', error);
@@ -68,10 +75,10 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
     }
   };
 
- 
+
 
   const handleNext = () => {
-
+    console.log('inicialSteps:', objetoInicial);
     const newActiveStep =
       isLastStep() && !allStepsCompleted()
         ? activeStep + 0
@@ -88,16 +95,56 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
 
     setActiveStep(step);
   };
-
-
-
- 
   const sendData = async () => {
-    console.log('Data sent to API:', steps);
+    console.log('steps:', steps);
+    console.log('StepInicial:', objetoInicial);
 
-      const response = await axios.post(`${BASE_URL}/dailyStructure/create/${id}`, steps);
-       toast.success('Campo creado exitosamente');
-   // console.log('id', id);
+    const steps2 = steps.map((step) => {
+      const updatedFields = Array.isArray(step.fields) ? step.fields.map((field) => {
+        const { dropdown_lists, ...rest } = field;
+        return rest;
+      }) : [];
+      return { ...step, fields: updatedFields };
+    });
+
+    const stepInicial2 = objetoInicial.map((step) => {
+      const updatedFields = Array.isArray(step.fields) ? step.fields.map((field) => {
+        const { dropdown_lists, ...rest } = field;
+        return rest;
+      }) : [];
+      return { ...step, fields: updatedFields };
+    });
+
+    const areFieldsNameEqual = (steps1, steps2) => {
+      for (let i = 0; i < steps1.length; i++) {
+        const fields1 = steps1[i].fields || [];
+        const fields2 = steps2[i].fields || [];
+        for (let j = 0; j < fields1.length; j++) {
+          if (
+            fields1[j].name !== fields2[j].name ||
+            fields1[j].description !== fields2[j].description ||
+            fields1[j].field_type !== fields2[j].field_type ||
+            fields1[j].step !== fields2[j].step
+          ) {
+            return false;
+          }
+        }
+      }
+      return true;
+    };
+    const areObjectsEqual = (obj1, obj2) => {
+      return JSON.stringify(obj1) === JSON.stringify(obj2);
+    };
+
+    var iguales = false;
+    if (areObjectsEqual(steps2, stepInicial2) && areFieldsNameEqual(steps2, stepInicial2)) {
+      iguales = true
+    } else {
+      iguales = false
+    }
+
+    const response = await axios.post(`${BASE_URL}/dailyStructure/create/${id}/${iguales}`, steps);
+    toast.success('Campo creado exitosamente');
   };
 
   const stepStyle = {
@@ -159,7 +206,7 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
             sx={{ marginLeft: '2rem' }}
             variant="contained"
             onClick={() => {
-              
+
               if (window.confirm('¿Estás seguro de guardar los cambios?')) {
                 sendData();
                 alert('Cambios guardados exitosamente');
@@ -170,9 +217,9 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
           </Button>
         </Tooltip>
 
-       
+
         <Button  // este boton deberia recargar la pagina con un boton de alerta asi la variable step retorna a como esta en la base de datos
-          color="error"  startIcon={<CancelIcon />}   sx={{ margin: '2rem' }}  variant="outlined" onClick={handleOpenModal}>
+          color="error" startIcon={<CancelIcon />} sx={{ margin: '2rem' }} variant="outlined" onClick={handleOpenModal}>
           Cancelar Cambios
         </Button>
       </Box>
@@ -191,17 +238,17 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
           <div>
             <React.Fragment>
               <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-                <Button  variant="outlined"   sx={{color: '#01579b', borderColor: '#01579b', maxHeight: '35px'}} startIcon={<ArrowBackIosIcon />}  disabled={activeStep === 0} onClick={handleBack} >
+                <Button variant="outlined" sx={{ color: '#01579b', borderColor: '#01579b', maxHeight: '35px' }} startIcon={<ArrowBackIosIcon />} disabled={activeStep === 0} onClick={handleBack} >
                   Back
                 </Button>
                 <Box
                   sx={{ width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center', paddingBottom: '1rem' }}
-                ><Button startIcon={<AutoStoriesIcon />}  style={{backgroundColor: '#37474f'}}  sx={{ marginTop: '0rem' }} variant="contained" onClick={handleOpenModal}>
+                ><Button startIcon={<AutoStoriesIcon />} style={{ backgroundColor: '#37474f' }} sx={{ marginTop: '0rem' }} variant="contained" onClick={handleOpenModal}>
                     Modificar Hojas
                   </Button>
                 </Box>
                 <Box sx={{ flex: '1 1 auto' }} />
-                <Button variant="outlined"  sx={{color: '#01579b', borderColor: '#01579b', maxHeight: '35px'}} endIcon={<ArrowForwardIosIcon />}  onClick={handleNext} disabled={isLastStep()} >
+                <Button variant="outlined" sx={{ color: '#01579b', borderColor: '#01579b', maxHeight: '35px' }} endIcon={<ArrowForwardIosIcon />} onClick={handleNext} disabled={isLastStep()} >
                   Next
                 </Button>
               </Box>
@@ -216,14 +263,14 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
 
       {openModal && (
         <Modal open={openModal} onClose={handleCloseModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description"
-          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-          <Box sx={{ bgcolor: 'background.paper', boxShadow: 24,p: 4, width: '90%', borderRadius: 2}}>
-            <Box sx={{margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center',}}>
-            <Button   startIcon={<SaveIcon />}    sx={{ borderColor: '#388e3c' }}  variant="outlined" onClick={handleCloseModal} >Cerrar</Button>
+          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Box sx={{ bgcolor: 'background.paper', boxShadow: 24, p: 4, width: '90%', borderRadius: 2 }}>
+            <Box sx={{ margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
+              <Button startIcon={<SaveIcon />} sx={{ borderColor: '#388e3c' }} variant="outlined" onClick={handleCloseModal} >Cerrar</Button>
             </Box>
-           
+
             <TableHojas />
-           
+
           </Box>
         </Modal>
       )}
