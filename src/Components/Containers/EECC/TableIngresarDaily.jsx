@@ -58,24 +58,32 @@ const ListTypes = [
   const columns = useMemo(() => {
     const safeFields = fields || [];
     const safeValidationErrors = validationErrors || {};
+    return safeFields.map((field) => {
 
-    return safeFields.map((field) => ({
-      accessorKey: field.name,
-      header: field.name,
-
-      muiEditTextFieldProps: {
-        required: true,
-        error: !!safeValidationErrors[field.name],
-        helperText: safeValidationErrors[field.name],
-        onFocus: () =>
-          setValidationErrors({
-            ...safeValidationErrors,
-            [field.name]: undefined,
-          }),
-        
-      },
-      ...(field.field_type === 'list' && { editVariant: 'select',    editSelectOptions: field.dropdown_lists }), 
-    }));
+      return {
+        accessorKey: field.name,
+        header: field.name,
+        ...(field.name === 'Comentarios Codelco' && { enableEditing: false }),
+        muiEditTextFieldProps: {
+          required: true,
+          error: !!safeValidationErrors[field.name],
+          helperText: safeValidationErrors[field.name],
+          onFocus: () =>
+            setValidationErrors({
+              ...safeValidationErrors,
+              [field.name]: undefined,
+            }),
+          ...(field.field_type === 'integer' && { type: 'number' }),
+          ...(field.field_type === 'date' && { type: 'date' }),
+          ...(field.field_type === 'hour' && { type: 'time' }),
+        },
+        ...(field.field_type === 'list' && {
+          editVariant: 'select',
+          editSelectOptions: field.dropdown_lists,
+        }),
+      };
+    });
+   
   }, [fields, validationErrors]);
 
   // Hooks y manejadores de Crear, Actualizar, Eliminar
@@ -91,6 +99,13 @@ const ListTypes = [
 
 
   const handleCreateField = async ({ values, table }) => {
+
+    const newValidationErrors = validateField(values);
+    if (Object.values(newValidationErrors).some((error) => error)) {
+      setValidationErrors(newValidationErrors);
+      return;
+    }
+
     const rowId = table.getState().creatingRowId;
     const maxRow = Math.max(...fetchedUsers.map(row => row.id), 0);
     const newRowId = maxRow + 1;
@@ -121,7 +136,7 @@ const ListTypes = [
         field_id: field ? field.id : null,
         value: values[key],
         daily_sheet_id: idSheet,
-        daily_id: idContract,
+        daily_id: idDaily,
         row: rowId
       };
     });
@@ -329,11 +344,11 @@ const validateEmail = (email) =>
 
 function validateField(Field) {
   return {
-    firstName: !validateRequired(Field.firstName)
+    RUT: !validateRequired(Field.RUT)
       ? 'First Name is Required'
       : '',
-    lastName: !validateRequired(Field.lastName) ? 'Last Name is Required' : '',
-    state: !validateRequired(Field.state) ? 'Last Name is Required' : '',
+   // lastName: !validateRequired(Field.lastName) ? 'Last Name is Required' : '',
+    //state: !validateRequired(Field.state) ? 'Last Name is Required' : '',
   };
 }
 

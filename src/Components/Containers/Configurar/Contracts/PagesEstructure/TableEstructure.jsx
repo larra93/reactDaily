@@ -16,7 +16,8 @@ import {
   Tooltip,
   Typography,
   Modal,
-  Chip
+  Chip,
+  Checkbox 
 } from '@mui/material';
 import {
   QueryClient,
@@ -46,6 +47,10 @@ const ListTypes = [
   'list',
   'hour',
   'date'
+];
+//list of True/False
+const ListRequired = [
+  'Si', 'No'
 ];
 
 
@@ -83,7 +88,6 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
         accessorKey: 'description',
         header: 'Descripción',
         muiEditTextFieldProps: {
-          required: true,
           error: !!validationErrors?.description,
           helperText: validationErrors?.description,
           //remove any previous validation errors when Field focuses on the input
@@ -100,11 +104,25 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
         editVariant: 'select',
         editSelectOptions: ListTypes,
         muiEditTextFieldProps: {
+          required: true,
           select: true,
           error: !!validationErrors?.field_type,
           helperText: validationErrors?.field_type,
         },
-      }, {
+      },
+
+      {
+        accessorKey: 'required',
+        header: 'Obligatorio',
+        editVariant: 'checkbox',
+        muiEditTextFieldProps: {
+          type: 'checkbox',
+          required: true,
+          error: !!validationErrors?.required,
+          helperText: validationErrors?.required,
+        },
+      },
+       {
         accessorKey: 'step',
         header: 'Orden',
         muiEditTextFieldProps: {

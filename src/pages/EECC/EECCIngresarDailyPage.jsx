@@ -99,7 +99,7 @@ const handleStepClick = (index) => {
    // onSubmit=""
     sx={{ width: '90%', margin: '0 auto' }}
   >
-      <h2>Modificar Estructura Daily</h2>
+      <h2>Ingresar Daily</h2>
       <Box
         component="form"
        // onSubmit=""
