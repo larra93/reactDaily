@@ -41,7 +41,7 @@ const ListTypes = [
     if (!fields) return [];
 
     const rowMap = {};
-
+    console.log('aer', fields)
     fields.forEach(field => {
       field.values.forEach(value => {
         if (!rowMap[value.row]) {
@@ -57,6 +57,7 @@ const ListTypes = [
 
   const columns = useMemo(() => {
     const safeFields = fields || [];
+    console.log('save', safeFields)
     const safeValidationErrors = validationErrors || {};
     return safeFields.map((field) => {
 
@@ -99,29 +100,42 @@ const ListTypes = [
 
 
   const handleCreateField = async ({ values, table }) => {
-
-    const newValidationErrors = validateField(values);
-    if (Object.values(newValidationErrors).some((error) => error)) {
-      setValidationErrors(newValidationErrors);
-      return;
-    }
+console.log('valll', values)
+console.log('requiredallsave', fetchedUsers.requiredAll)
+   console.log('fetchedUsers', fetchedUsers.rows)
 
     const rowId = table.getState().creatingRowId;
-    const maxRow = Math.max(...fetchedUsers.map(row => row.id), 0);
+    const maxRow = Math.max(...fetchedUsers.rows.map(row => row.id), 0);
     const newRowId = maxRow + 1;
 
     const transformedValues = Object.keys(values).map((key) => {
       const field = fields.find((f) => f.name === key);
+      console.log('field', field)
+      if (!field) {
+        return null;
+      }
       return {
         field_id: field ? field.id : null,
         value: values[key],
         daily_sheet_id: idSheet,
         daily_id: idDaily,
-        row: newRowId
+        row: newRowId,
+        required: field.required,
+        name: field.name
       };
-    });
+    }).filter(value => value !== null);
+      
+    const allRequiredFields = fields.flatMap(field => field).filter(field => field.required === 'Si');
+    console.log('allRequiredFields', allRequiredFields)
+    // const newValidationErrors = validateField(fetchedUsers.requiredAll);
+    const newValidationErrors = validateField(fetchedUsers.requiredAll, values);
 
-    await createField(transformedValues);
+    if (Object.values(newValidationErrors).some((error) => error)) {
+      setValidationErrors(newValidationErrors);
+      return;
+    }
+    console.log('transf', transformedValues)
+    // await createField(transformedValues);
     table.setCreatingRow(null);
   };
 
@@ -152,7 +166,7 @@ const ListTypes = [
 
   const table = useMaterialReactTable({
     columns,
-    data: fetchedUsers,
+    data: fetchedUsers.rows ? fetchedUsers.rows : [], 
     createDisplayMode: 'row',
     editDisplayMode: 'row',
     enableEditing: true,
@@ -222,8 +236,10 @@ function useGetFields(idDaily, idSheet) {
 
       const response = await axios.get(`${BASE_URL}/Dailys/${idDaily}/dailyStructure`)
       var  fields = response.data.steps.find(step => step.idSheet === idSheet).fields;
-
-      console.log('fields', fields)
+      const steps = response.data.steps;
+      const requiredAll = steps.flatMap(step => step.fields);
+      console.log('requiredAll', requiredAll)
+      console.log('response.data.steps.', response.data.steps)
       if (!fields) return [];
 
       const rowMap = {};
@@ -237,6 +253,10 @@ function useGetFields(idDaily, idSheet) {
         });
       });
       console.log('rowMap', rowMap)
+      return {
+        requiredAll,
+        rows: Object.values(rowMap)
+      };
 
       return Object.values(rowMap);
 
@@ -322,6 +342,7 @@ const Table = ({ data, idDaily }) => {
   //  console.log('daily1', idDaily);
   if (!data) return null;
   const fields = data.fields.sort((a, b) => a.step - b.step);
+  console.log('daa', data)
   const idSheet = data.idSheet;
 
   return (
@@ -342,14 +363,59 @@ const validateEmail = (email) =>
       /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
     );
 
-function validateField(Field) {
-  return {
-    RUT: !validateRequired(Field.RUT)
-      ? 'First Name is Required'
-      : '',
-   // lastName: !validateRequired(Field.lastName) ? 'Last Name is Required' : '',
-    //state: !validateRequired(Field.state) ? 'Last Name is Required' : '',
-  };
+// function validateField(Field) {
+//   return {
+//     RUT: !validateRequired(Field.RUT)
+//       ? 'First Name is Required'
+//       : '',
+//    // lastName: !validateRequired(Field.lastName) ? 'Last Name is Required' : '',
+//     //state: !validateRequired(Field.state) ? 'Last Name is Required' : '',
+//   };
+// }
+
+function validateField(fields, values) {
+  const validationErrors = {};
+
+  fields.forEach(field => {
+    if (field.required === 'Si' && !values[field.name]) {
+      validationErrors[field.name] = `${field.name} es requerido`;
+    } else {
+      if (validationErrors[field.name]) {
+        delete validationErrors[field.name];
+      }
+    }
+  });
+
+  return validationErrors;
 }
+
+
+
+// function validateField(values) {
+//   const validationErrors = {};
+// console.log('valuessss', values)
+//   values.forEach(field => {
+//     console.log('values, field', field);
+//     if (field.required === 'Si') {
+//       validationErrors[field.name] = `${field.name} es requerido`;
+//     }
+//   });
+// console.log('validationErrors ', validationErrors )
+//   return validationErrors;
+// }
+
+// function validateField(values) {
+//   const validationErrors = {};
+
+//   Object.keys(values).forEach(key => {
+//     if (!values[key].trim()) {
+//       validationErrors[key] = `${key} es requerido`;
+//     }
+//   });
+
+//   return validationErrors;
+// }
+
+
 
 
