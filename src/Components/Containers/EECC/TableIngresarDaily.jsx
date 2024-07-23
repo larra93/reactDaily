@@ -97,7 +97,9 @@ const ListTypes = [
     isFetching: isFetchingUsers,
     isLoading: isLoadingUsers,
   } = useGetFields(idDaily, idSheet);
-
+  console.log('fetchedUsers:', fetchedUsers);
+  console.log('isFetchingUsers:', isFetchingUsers);
+  console.log('idSheet:', idSheet);
 
   const handleCreateField = async ({ values, table }) => {
 console.log('valll', values)
@@ -135,7 +137,7 @@ console.log('requiredallsave', fetchedUsers.requiredAll)
       return;
     }
     console.log('transf', transformedValues)
-    // await createField(transformedValues);
+    await createField(transformedValues);
     table.setCreatingRow(null);
   };
 
@@ -231,11 +233,12 @@ function useGetFields(idDaily, idSheet) {
 
 
   return useQuery({
-    queryKey: ['fields'],
+    queryKey: ['fields', idSheet],
     queryFn: async () => {
 
       const response = await axios.get(`${BASE_URL}/Dailys/${idDaily}/dailyStructure`)
       var  fields = response.data.steps.find(step => step.idSheet === idSheet).fields;
+      console.log('fieldssssss222', fields)
       const steps = response.data.steps;
       const requiredAll = steps.flatMap(step => step.fields);
       console.log('requiredAll', requiredAll)
@@ -258,7 +261,7 @@ function useGetFields(idDaily, idSheet) {
         rows: Object.values(rowMap)
       };
 
-      return Object.values(rowMap);
+      // return Object.values(rowMap);
 
 
 
