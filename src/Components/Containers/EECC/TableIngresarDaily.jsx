@@ -105,7 +105,6 @@ const ListTypes = [
     const newRowId = maxRow + 1;
   
     const transformedValues = fetchedUsers.requiredAll.map((field) => {
-      console.log('field111', field.name)
       const value = values[field.name];
       if (value === undefined) {
         return null;
@@ -174,7 +173,7 @@ const ListTypes = [
   };
   const openDeleteConfirmModal = (row) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este campo?')) {
-      deleteField(row.original.id);
+      deleteField({ row: row.original.id, daily_id: idDaily });
     }
   };
 
@@ -324,14 +323,26 @@ function useUpdateField() {
 function useDeleteField() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (FieldId) => {
-      await axios.delete(`${BASE_URL}/values/${FieldId}`);
-      return Promise.resolve();
+    mutationFn: async ({ row, daily_id }) => {
+   
+      await axios.delete(`${BASE_URL}/values`, {
+        data: { row, daily_id }
+      });
     },
-    onMutate: (FieldId) => {
+    
+    onMutate: (deletedField) => {
       queryClient.setQueryData(['Fields'], (prevFields) =>
-        prevFields?.filter((Field) => Field.id !== FieldId),
+        prevFields?.filter((field) => field.id !== deletedField.row),
       );
+    },
+    onError: (error) => {
+      toast.error('Error al eliminar el campo');
+    },
+    onSettled: (data, error) => {
+      if (!error) {
+        toast.success('Campos eliminados exitosamente');
+      }
+      queryClient.invalidateQueries(['Fields']);
     },
   });
 }
