@@ -9,11 +9,17 @@ import { AuthContext } from "./Components/context/authContext"
 import { useEffect, useState } from "react"
 import Login from "./Components/auth/Login"
 import ProtectedRoute from "./Components/ProtectedRoute/ProtectedRoute"
-import ContractFormPage from "./pages/ContractFormPage"
-import ContractsPage from "./pages/ContractsPage"
-import UserPage from "./pages/UserPage"
-import UserFormPage from "./pages/UserFormPage"
-import ContractFormato from "./pages/ContractFormato"
+import ContractFormPage from "./pages/Configurar/ContractCUPage"
+import ContractsPage from "./pages/Configurar/ContractsPage"
+import UserPage from "./pages/Configurar/UsersPage"
+import UserFormPage from "./pages/Configurar/UserCUPage"
+import ContractFormato from "./pages/Configurar/ContractEstructuraPage"
+import EECCDailys from "./pages/EECC/EECCDailysPage"
+import EECCIngresarDaily from "./pages/EECC/EECCIngresarDailyPage"
+import EECCContracts from "./pages/EECC/EECCContractsPage"
+
+
+
 
 function App() {
     const [accessToken, setAccessToken] = useState(JSON.parse(localStorage.getItem('currentToken')))
@@ -48,11 +54,14 @@ function App() {
                     <Route path="/register" element={<ProtectedRoute><Register /></ProtectedRoute>} />
                     <Route path="/contracts" element={<ProtectedRoute><ContractsPage /></ProtectedRoute>} />
                     <Route path="/contracts/create" element={<ProtectedRoute><ContractFormPage /></ProtectedRoute>} />
-                    <Route path="/contracts/formato" element={<ProtectedRoute><ContractFormato /></ProtectedRoute>} />
+                    <Route path="/contracts/formato/:id" element={<ProtectedRoute><ContractFormato /></ProtectedRoute>} />
                     <Route path="/contracts/edit/:id" element={<ProtectedRoute><ContractFormPage /></ProtectedRoute>} />
-                    <Route path="/users/create" element={<ProtectedRoute><ContractFormato /></ProtectedRoute>} />
+                    <Route path="/users/create" element={<ProtectedRoute><UserFormPage /></ProtectedRoute>} />
                     <Route path="/users/edit/:id" element={<ProtectedRoute><UserFormPage /></ProtectedRoute>} />
                     <Route path="/users" element={<ProtectedRoute><UserPage /></ProtectedRoute>} />
+                    <Route path="/EECCDailys/:id" element={<ProtectedRoute><EECCDailys /></ProtectedRoute>} />
+                    <Route path="/EECCDailys/edit/:id" element={<ProtectedRoute><EECCIngresarDaily /></ProtectedRoute>} />    
+                    <Route path="/EECCContracts/" element={<ProtectedRoute><EECCContracts/></ProtectedRoute>} />    
                     <Route path="*" element={<Navigate to="/login" />} />
                 </Routes>
             </BrowserRouter>

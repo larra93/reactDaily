@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import UserForm from '../Components/Users/UserForm';
+import UserForm from '../../Components/Containers/Configurar/Users/UserForm';
 import axios from 'axios';
-import { BASE_URL } from '../helpers/config';
+import { BASE_URL } from '../../helpers/config';
 import { toast } from 'react-toastify';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Box, Button } from '@mui/material';
+
 
 const UserFormPage = () => {
     const navigate = useNavigate(); 
@@ -65,10 +67,12 @@ const UserFormPage = () => {
     };
 
     return (
+        <Box sx={{ width: '95%', margin: '0 auto', mt: 4}}>
         <div>
             <h2>{id ? 'Editar usuario' : 'Crear usuario'}</h2>
             {id && !user ? <p>Cargando...</p> : <UserForm onSubmit={handleCreateUser} roles={roles} user={user} />}
         </div>
+        </Box>
     );
 };
 

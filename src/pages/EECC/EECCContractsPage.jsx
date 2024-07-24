@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import ContractTable from '../Contract/ContractTable';
+import React, { useEffect, useState }  from 'react';
+import ContractTable from '../../Components/Containers/EECC/EECCContractsTable';
 import { Box, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { BASE_URL } from '../../helpers/config';
 import { toast } from 'react-toastify';
 
-const ContractContainer = () => {
+const ContractsPage = () => {
     const [contracts, setContracts] = useState([]);
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
 
     useEffect(() => {
@@ -46,6 +46,10 @@ const ContractContainer = () => {
     };
 
     return (
+        <Box
+        // onSubmit=""
+         sx={{ width: '95%', margin: '0 auto', mt: 4}}
+       >
         <div>
             <h2>Administrar Contratos</h2>
             <Box display="flex" justifyContent="flex-end" mb={2}>
@@ -63,7 +67,8 @@ const ContractContainer = () => {
                 onDeleteContract={handleDeleteContract}
             />
         </div>
+        </Box>
     );
 };
 
-export default ContractContainer;
+export default ContractsPage;
