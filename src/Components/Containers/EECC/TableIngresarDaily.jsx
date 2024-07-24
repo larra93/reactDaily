@@ -29,22 +29,12 @@ import { toast } from 'react-toastify';
 const TableP = ({ fields, idSheet, idDaily }) => {
   const [validationErrors, setValidationErrors] = useState({});
 
-  //list of field types
-  const ListTypes = [
-    'text',
-    'integer',
-    'list',
-    'hour',
-    'date'
-  ];
-  // Extraer valores y transformarlos en filas para la tabla
-
-
+  const fieldsDeep = JSON.parse(JSON.stringify(fields));
   const [rowValues, setRowValues] = useState({});
 
   useEffect(() => {
     setRowValues(rowValues);
-    console.log('fieldsValues', rowValues)
+    // console.log('rowValues', rowValues)
   }, [rowValues]);
 
   const rows = useMemo(() => {
@@ -63,12 +53,18 @@ const TableP = ({ fields, idSheet, idDaily }) => {
     return Object.values(rowMap);
   }, [fields]);
 
+let columns  = null;
+   columns = useMemo(() => {
+  const fieldsDeep = JSON.parse(JSON.stringify(fields));
 
-  const columns = useMemo(() => {
-    const safeFields = fields || [];
+    const safeFields = fieldsDeep || [];
     const safeValidationErrors = validationErrors || {};
-    return safeFields.map((field) => {
+    return fieldsDeep.map((field) => {
+
       return {
+        // necesitamos un accessorKey único para cada columna
+        // accessorKey: `${field.name}-${field.daily_sheet_id}`, pero esto requerira cambios
+        
         accessorKey: field.name,
         header: field.name,
         ...(field.name === 'Comentarios Codelco' && { enableEditing: false }),
@@ -94,7 +90,7 @@ const TableP = ({ fields, idSheet, idDaily }) => {
         }),
       };
     });
-  }, [fields, validationErrors, rowValues]);
+  }, [JSON.stringify(fieldsDeep), validationErrors, rowValues]);
 
 
   // Función para manejar el cambio en "HH trabajadas"
@@ -102,26 +98,21 @@ const TableP = ({ fields, idSheet, idDaily }) => {
     const newValue = event.target.value;
     const valueJornada = rowValues[`Jornada-${row.id}`];
     // Actualiza el estado con el nuevo valor
-    console.log('valueJornada', valueJornada);
     setRowValues(prevValues => ({
       ...prevValues,
       [`${field.name}-${row.id}`]: newValue,
     }));
-    console.log('rowValues', rowValues);
   };
   const handleJornada = (event, field, row, table) => {
     const newValue = event.target.value;
     const valueEstado = rowValues[`Estado Personal-${row.id}`];
-    console.log('valueEstado', valueEstado);
     //por el momento no se esta tomando en cuenta categoría, pero puede que a futuro se necesite
     const valueCategoria = rowValues[`Categoría-${row.id}`];
-    console.log('valueCategoria', valueCategoria);
     // Actualiza el estado de Jornada en rowValues
     setRowValues(prevValues => ({
       ...prevValues,
       [`${field.name}-${row.id}`]: newValue,
     }));
-
     let valorFinalHH = rowValues[`HH Trabajadas-${row.id}`];
     //comienza formula para defnir HH trabajadas
     if (valueEstado === "Trabajando" || valueEstado === "Teletrabajo") {
@@ -143,10 +134,8 @@ const TableP = ({ fields, idSheet, idDaily }) => {
   const handleEstado = (event, field, row, table) => {
     const newValue = event.target.value;
     const valueJornada = rowValues[`Jornada-${row.id}`];
-    console.log('valueJornada', valueJornada);
     //por el momento no se esta tomando en cuenta categoría, pero puede que a futuro se necesite
     const valueCategoria = rowValues[`Categoría-${row.id}`];
-    console.log('valueCategoria', valueCategoria);
     // Actualiza el estado de Estado Personal en rowValues
     setRowValues(prevValues => ({
       ...prevValues,
@@ -163,6 +152,8 @@ const TableP = ({ fields, idSheet, idDaily }) => {
       } else if (valueJornada === "10x5") {
         valorFinalHH = "9";
       }
+    } else {
+      valorFinalHH = "0";
     }
     // Actualiza el estado de HH trabajadas en rowValues
     setRowValues(prevValues => ({
@@ -173,9 +164,7 @@ const TableP = ({ fields, idSheet, idDaily }) => {
   const handleCategoria = (event, field, row, table) => {
     const newValue = event.target.value;
     const valueJornada = rowValues[`Jornada-${row.id}`];
-    console.log('valueJornada', valueJornada);
     const valueEstado = rowValues[`Estado Personal-${row.id}`];
-    console.log('valueEstado', valueEstado);
     // Actualiza el estado de Categoria en rowValues
     setRowValues(prevValues => ({
       ...prevValues,
@@ -187,7 +176,6 @@ const TableP = ({ fields, idSheet, idDaily }) => {
   }
 
 
-
   // Hooks y manejadores de Crear, Actualizar, Eliminar
   const { mutateAsync: createField, isPending: isCreatingField } = useCreateField();
   const { mutateAsync: updateField, isPending: isUpdatingField } = useUpdateField();
@@ -197,7 +185,7 @@ const TableP = ({ fields, idSheet, idDaily }) => {
     isError: isLoadingUsersError,
     isFetching: isFetchingUsers,
     isLoading: isLoadingUsers,
-  } = useGetFields(idDaily, idSheet);
+  } = useGetRows(idDaily, idSheet);
 
 
   const handleCreateField = async ({ values, table }) => {
@@ -206,11 +194,15 @@ const TableP = ({ fields, idSheet, idDaily }) => {
     const maxRow = Math.max(...fetchedUsers.rows.map(row => row.id), 0);
     const newRowId = maxRow + 1;
 
+    console.log('fetchedUsers', fetchedUsers);
+    console.log('values', values);
+
     const transformedValues = fetchedUsers.requiredAll.map((field) => {
       const value = values[field.name];
-      if (value === undefined) {
+      if (value === undefined || value === null || value === '') {
         return null;
       }
+
       return {
         field_id: field.id,
         value: value,
@@ -222,8 +214,7 @@ const TableP = ({ fields, idSheet, idDaily }) => {
       };
     }).filter(value => value !== null);
 
-    const newValidationErrors = validateField(fetchedUsers.requiredAll, values);
-
+    const newValidationErrors = validateCurrentSheetFields(idSheet, fetchedUsers.requiredAll, values);
 
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
@@ -233,6 +224,7 @@ const TableP = ({ fields, idSheet, idDaily }) => {
     toast.success('Campos creados exitosamente');
     await createField(transformedValues);
     table.setCreatingRow(null);
+    resetRowValues();
   };
 
 
@@ -294,11 +286,9 @@ const TableP = ({ fields, idSheet, idDaily }) => {
 
     onCreatingRowSave: async ({ values, table }) => {
       await handleCreateField({ values, table });
-      resetRowValues();
     },
     onEditingRowCancel: () => {
       setValidationErrors({});
-      resetRowValues();
     },
 
     onEditingRowSave: async ({ values, row, table }) => {
@@ -356,8 +346,7 @@ const TableP = ({ fields, idSheet, idDaily }) => {
 
 
 //READ hook (get fields from api)
-function useGetFields(idDaily, idSheet) {
-
+function useGetRows(idDaily, idSheet) {
 
   return useQuery({
     queryKey: ['fields', idSheet],
@@ -365,16 +354,14 @@ function useGetFields(idDaily, idSheet) {
 
       const response = await axios.get(`${BASE_URL}/Dailys/${idDaily}/dailyStructure`)
       var fields = response.data.steps.find(step => step.idSheet === idSheet).fields;
+   //   console.log('fields:', fields);
       const steps = response.data.steps;
       const allFields = steps.flatMap(step => step.fields);
-
-
-
       if (!fields) return [];
 
       const rowMap = {};
 
-      allFields.forEach(field => {
+      fields.forEach(field => {
         field.values.forEach(value => {
           if (!rowMap[value.row]) {
             rowMap[value.row] = { id: value.row };
@@ -382,9 +369,10 @@ function useGetFields(idDaily, idSheet) {
           rowMap[value.row][field.name] = value.value;
         });
       });
+     
 
       return {
-        requiredAll: allFields,
+        requiredAll: fields,
         rows: Object.values(rowMap)
       };
 
@@ -468,6 +456,7 @@ const queryClient = new QueryClient();
 const Table = ({ data, idDaily }) => {
   if (!data) return null;
   const fields = data.fields.sort((a, b) => a.step - b.step);
+  console.log('fields:', fields);
   const idSheet = data.idSheet;
 
   return (
@@ -488,20 +477,6 @@ const validateEmail = (email) =>
       /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
     );
 
-function validateField(fields, values) {
-  const validationErrors = {};
-  fields.forEach(field => {
-    if (field.required === 'Si' && !values[field.name]) {
-      validationErrors[field.name] = `${field.name} es requerido`;
-    } else {
-      if (validationErrors[field.name]) {
-        delete validationErrors[field.name];
-      }
-    }
-  });
-
-  return validationErrors;
-}
 
 function validateCurrentSheetFields(currentSheetId, allFields, values) {
   const validationErrors = {};
@@ -512,13 +487,21 @@ function validateCurrentSheetFields(currentSheetId, allFields, values) {
   // Validar los campos filtrados
   currentSheetFields.forEach(field => {
     if (field.required === 'Si' && !values[field.name]) {
+      console.log('field.name:', field.name);
+      if(field.name === "HH Trabajadas"){
+        console.log('entro', field.name);
+        validationErrors[field.name] = `Seleccione Manualmente el campo`;
+      }else{
+        console.log('entro', field.name);
       validationErrors[field.name] = `${field.name} es requerido`;
+      }
     } else {
       if (validationErrors[field.name]) {
         delete validationErrors[field.name];
       }
     }
   });
+  console.log(validationErrors);
 
   return validationErrors;
 }

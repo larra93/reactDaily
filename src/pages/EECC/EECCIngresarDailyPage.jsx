@@ -47,8 +47,15 @@ const fetchStepsAndFields = async () => {
   try { 
       const response = await axios.get(`${BASE_URL}/Dailys/${id}/dailyStructure`)
 
-      setSteps(response.data.steps);
-      console.log('response', response.data.steps)
+      const stepsOrdenados = response.data.steps.map((step) => {
+        return {
+          ...step,
+          fields: step.fields.sort((a, b) => a.step - b.step)
+        };
+      });
+      
+console.log('stepsOrdenados', stepsOrdenados)
+      setSteps(stepsOrdenados);
   } catch (error) {
       console.error('Error al obtener pasos y campos:', error);
   }
