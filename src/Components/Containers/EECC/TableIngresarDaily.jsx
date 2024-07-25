@@ -29,13 +29,9 @@ import { toast } from 'react-toastify';
 const TableP = ({ fields, idSheet, idDaily }) => {
   const [validationErrors, setValidationErrors] = useState({});
 
-  const fieldsDeep = JSON.parse(JSON.stringify(fields));
+
   const [rowValues, setRowValues] = useState({});
 
-  useEffect(() => {
-    setRowValues(rowValues);
-    // console.log('rowValues', rowValues)
-  }, [rowValues]);
 
   const rows = useMemo(() => {
     if (!fields) return [];
@@ -53,19 +49,15 @@ const TableP = ({ fields, idSheet, idDaily }) => {
     return Object.values(rowMap);
   }, [fields]);
 
-let columns  = null;
-   columns = useMemo(() => {
-  const fieldsDeep = JSON.parse(JSON.stringify(fields));
+  const columns = useMemo(() => {
 
-    const safeFields = fieldsDeep || [];
+    const safeFields = fields || [];
     const safeValidationErrors = validationErrors || {};
-    return fieldsDeep.map((field) => {
-
+    return safeFields.map((field) => {
+      const newfieldname = `${field.name}-${field.daily_sheet_id}`;
       return {
         // necesitamos un accessorKey único para cada columna
-        // accessorKey: `${field.name}-${field.daily_sheet_id}`, pero esto requerira cambios
-        
-        accessorKey: field.name,
+        accessorKey: newfieldname,
         header: field.name,
         ...(field.name === 'Comentarios Codelco' && { enableEditing: false }),
         muiEditTextFieldProps: ({ cell, row, table }) => ({
@@ -75,8 +67,8 @@ let columns  = null;
           }),
           id: `${field.name}-${row.id}`,
           required: true,
-          error: !!safeValidationErrors[field.name],
-          helperText: safeValidationErrors[field.name],
+          error: !!safeValidationErrors[newfieldname],
+          helperText: safeValidationErrors[newfieldname],
           ...(field.name === 'Estado Personal' && { onChange: (e) => handleEstado(e, field, row, table) }),
           ...(field.name === 'Jornada' && { onChange: (e) => handleJornada(e, field, row, table) }),
           ...(field.name === 'Categoría' && { onChange: (e) => handleCategoria(e, field, row, table) }),
@@ -90,8 +82,12 @@ let columns  = null;
         }),
       };
     });
-  }, [JSON.stringify(fieldsDeep), validationErrors, rowValues]);
+  }, [fields, validationErrors, rowValues]);
 
+  useEffect(() => {
+
+    // console.log('columns', columns)
+  }, [rowValues]);
 
   // Función para manejar el cambio en "HH trabajadas"
   const handleHH = (event, field, row, table) => {
@@ -188,14 +184,22 @@ let columns  = null;
   } = useGetRows(idDaily, idSheet);
 
 
-  const handleCreateField = async ({ values, table }) => {
+  const handleCreateField = async ({ values, table, idSheet }) => {
 
     const rowId = table.getState().creatingRowId;
     const maxRow = Math.max(...fetchedUsers.rows.map(row => row.id), 0);
     const newRowId = maxRow + 1;
-
-    console.log('fetchedUsers', fetchedUsers);
     console.log('values', values);
+    console.log('rowValues', rowValues);
+    console.log('idSheet', idSheet);
+
+    //pasos para solucionar problema de hh trabajadas no viene en values, si es que se actualiza con funcion handleEstado o handleJornada
+    const hhtrabajadasValues = `HH Trabajadas-${idSheet}`;
+    const hhtrabajadasRowValues = `HH Trabajadas-mrt-row-create`;
+    if (!values[hhtrabajadasValues]) {
+      values[hhtrabajadasValues] = rowValues[hhtrabajadasRowValues];
+    }
+
 
     const transformedValues = fetchedUsers.requiredAll.map((field) => {
       const value = values[field.name];
@@ -221,8 +225,8 @@ let columns  = null;
       return;
     }
 
-    toast.success('Campos creados exitosamente');
     await createField(transformedValues);
+    toast.success('Campos creados exitosamente');
     table.setCreatingRow(null);
     resetRowValues();
   };
@@ -252,9 +256,7 @@ let columns  = null;
       };
     }).filter(value => value !== null);
 
-
     const newValidationErrors = validateCurrentSheetFields(idSheet, fetchedUsers.requiredAll, values);
-
 
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
@@ -267,7 +269,7 @@ let columns  = null;
   };
   const openDeleteConfirmModal = (row) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este campo?')) {
-      deleteField({ row: row.original.id, daily_id: idDaily });
+      deleteField({ row: row.original.id, daily_id: idDaily, daily_sheet_id: idSheet });
     }
   };
 
@@ -285,7 +287,7 @@ let columns  = null;
     },
 
     onCreatingRowSave: async ({ values, table }) => {
-      await handleCreateField({ values, table });
+      await handleCreateField({ values, table, idSheet });
     },
     onEditingRowCancel: () => {
       setValidationErrors({});
@@ -337,6 +339,9 @@ let columns  = null;
       </Button>
     ),
     state: {
+      isLoading: isLoadingUsers,
+      showAlertBanner: isLoadingUsersError,
+      showProgressBars: isFetchingUsers,
       isSaving: isCreatingField || isUpdatingField || isDeletingField,
     },
   });
@@ -354,22 +359,27 @@ function useGetRows(idDaily, idSheet) {
 
       const response = await axios.get(`${BASE_URL}/Dailys/${idDaily}/dailyStructure`)
       var fields = response.data.steps.find(step => step.idSheet === idSheet).fields;
-   //   console.log('fields:', fields);
       const steps = response.data.steps;
       const allFields = steps.flatMap(step => step.fields);
       if (!fields) return [];
 
       const rowMap = {};
 
-      fields.forEach(field => {
+
+
+      fields.forEach((field, index) => {
+        let newfieldname = `${field.name}-${idSheet}`;
+        fields[index]['name'] = newfieldname;
         field.values.forEach(value => {
           if (!rowMap[value.row]) {
             rowMap[value.row] = { id: value.row };
           }
-          rowMap[value.row][field.name] = value.value;
+          rowMap[value.row][newfieldname] = value.value;
         });
       });
-     
+      console.log('fields:', fields);
+      console.log('rowMap:', rowMap);
+
 
       return {
         requiredAll: fields,
@@ -427,10 +437,10 @@ function useUpdateField() {
 function useDeleteField() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ row, daily_id }) => {
-
+    mutationFn: async ({ row, daily_id, daily_sheet_id }) => {
+      console.log('daily_sheet_id', daily_sheet_id);
       await axios.delete(`${BASE_URL}/values`, {
-        data: { row, daily_id }
+        data: { row, daily_id, daily_sheet_id }
       });
     },
 
@@ -456,7 +466,6 @@ const queryClient = new QueryClient();
 const Table = ({ data, idDaily }) => {
   if (!data) return null;
   const fields = data.fields.sort((a, b) => a.step - b.step);
-  console.log('fields:', fields);
   const idSheet = data.idSheet;
 
   return (
@@ -479,31 +488,34 @@ const validateEmail = (email) =>
 
 
 function validateCurrentSheetFields(currentSheetId, allFields, values) {
-  const validationErrors = {};
+  const validationErrorsVar = {};
 
   // Filtrar los campos que pertenecen al idSheet actual
   const currentSheetFields = allFields.filter(field => field.daily_sheet_id === currentSheetId);
+  console.log('currentSheetFields', currentSheetFields);
 
   // Validar los campos filtrados
   currentSheetFields.forEach(field => {
     if (field.required === 'Si' && !values[field.name]) {
-      console.log('field.name:', field.name);
-      if(field.name === "HH Trabajadas"){
-        console.log('entro', field.name);
-        validationErrors[field.name] = `Seleccione Manualmente el campo`;
-      }else{
-        console.log('entro', field.name);
-      validationErrors[field.name] = `${field.name} es requerido`;
+
+      let originalName = field.name.split('-')[0];
+
+      if (originalName === "HH Trabajadas") {
+        validationErrorsVar[field.name] = `Seleccione Manualmente el campo`;
+      } else {
+        validationErrorsVar[field.name] = `${originalName} es requerido`;
       }
     } else {
-      if (validationErrors[field.name]) {
-        delete validationErrors[field.name];
+      if (validationErrorsVar[field.name]) {
+        delete validationErrorsVar[field.name];
       }
     }
   });
-  console.log(validationErrors);
 
-  return validationErrors;
+
+  console.log(validationErrorsVar);
+
+  return validationErrorsVar;
 }
 
 

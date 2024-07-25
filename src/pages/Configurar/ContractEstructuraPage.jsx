@@ -77,7 +77,9 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
   };
   const sendData = async () => {
     console.log('steps:', steps);
-    console.log('StepInicial:', objetoInicial);
+    console.log('objetoInicial:', objetoInicial);
+//esto es para saber si las hojas y fields originales son iguales a las actuales (sin tomar en cuenta los dropdowns)
+//la idea es que si solo se modificaron los dropdowns no se genere un nuevo structure daily
     const steps2 = steps.map((step) => {
       const updatedFields = Array.isArray(step.fields) ? step.fields.map((field) => {
         const { dropdown_lists, ...rest } = field;
@@ -85,7 +87,7 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
       }) : [];
       return { ...step, fields: updatedFields };
     });
-    const stepInicial2 = objetoInicial.map((step) => {
+    const objetoInicial2 = objetoInicial.map((step) => {
       const updatedFields = Array.isArray(step.fields) ? step.fields.map((field) => {
         const { dropdown_lists, ...rest } = field;
         return rest;
@@ -113,7 +115,7 @@ const ContractFormato = ({ onSubmit, users, companies }) => {
       return JSON.stringify(obj1) === JSON.stringify(obj2);
     };
     var iguales = '';
-    if (areObjectsEqual(steps2, stepInicial2) && areFieldsNameEqual(steps2, stepInicial2)) {
+    if (areObjectsEqual(steps2, objetoInicial2) && areFieldsNameEqual(steps2, objetoInicial2)) {
       iguales = "si"
     } else {
       iguales = "no"
