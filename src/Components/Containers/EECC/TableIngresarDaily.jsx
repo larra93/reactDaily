@@ -358,6 +358,9 @@ function useGetRows(idDaily, idSheet) {
     queryFn: async () => {
 
       const response = await axios.get(`${BASE_URL}/Dailys/${idDaily}/dailyStructure`)
+      const response2 = await axios.get(`${BASE_URL}/Dailys/${idDaily}/dailyStructurev2`)
+      var rowsResponse = response2.data.values;
+
       var fields = response.data.steps.find(step => step.idSheet === idSheet).fields;
       const steps = response.data.steps;
       const allFields = steps.flatMap(step => step.fields);
@@ -378,12 +381,15 @@ function useGetRows(idDaily, idSheet) {
         });
       });
       console.log('fields:', fields);
+      console.log('rowsResponse:', rowsResponse);
       console.log('rowMap:', rowMap);
 
 
       return {
         requiredAll: fields,
-        rows: Object.values(rowMap)
+        
+        //rows: Object.values(rowMap)
+        rows: rowsResponse
       };
 
     },
