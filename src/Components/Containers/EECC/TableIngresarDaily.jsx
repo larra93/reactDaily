@@ -358,6 +358,7 @@ function useGetRows(idDaily, idSheet) {
     queryFn: async () => {
 
       const response = await axios.get(`${BASE_URL}/Dailys/${idDaily}/dailyStructure`)
+      //rows
       const response2 = await axios.get(`${BASE_URL}/Dailys/${idDaily}/dailyStructurev2`)
       var rowsResponse = response2.data.values;
 
