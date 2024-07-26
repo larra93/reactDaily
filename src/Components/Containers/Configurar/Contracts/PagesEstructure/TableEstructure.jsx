@@ -114,9 +114,10 @@ const Table = ({ handleCreateField, handleSaveField, openDeleteConfirmModal, fie
       {
         accessorKey: 'required',
         header: 'Obligatorio',
-        editVariant: 'checkbox',
+        editVariant: 'select',
+        editSelectOptions: ListRequired,
         muiEditTextFieldProps: {
-          type: 'checkbox',
+          select: true,
           required: true,
           error: !!validationErrors?.required,
           helperText: validationErrors?.required,
