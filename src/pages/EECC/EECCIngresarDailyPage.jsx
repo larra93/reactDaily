@@ -46,18 +46,24 @@ const IngresarDaily = ({ onSubmit, users, companies }) => {
 const fetchStepsAndFields = async () => {
   try { 
       const response = await axios.get(`${BASE_URL}/Dailys/${id}/dailyStructure`)
-      //const response2 = await axios.get(`${BASE_URL}/Dailys/${id}/dailyStructurev2`)
 
-      //console.log('response2', response2.data);
       const stepsOrdenados = response.data.steps.map((step) => {
         return {
           ...step,
           fields: step.fields.sort((a, b) => a.step - b.step)
         };
       });
-      
+
+      const FinalizarStep = {
+        idSheet: 'resumen',
+        sheet: 'Resumen',
+      };
+
+      const updatedStepsOrdenados = [...stepsOrdenados, FinalizarStep];
+
+      setSteps(updatedStepsOrdenados);
 //console.log('stepsOrdenados', stepsOrdenados)
-      setSteps(stepsOrdenados);
+     // setSteps(stepsOrdenados);
   } catch (error) {
       console.error('Error al obtener pasos y campos:', error);
   }
