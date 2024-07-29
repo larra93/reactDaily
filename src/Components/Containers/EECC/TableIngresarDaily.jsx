@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import {
   MRT_EditActionButtons,
   MaterialReactTable,
@@ -29,87 +29,91 @@ import { toast } from 'react-toastify';
 const TableP = ({ fields, idSheet, idDaily }) => {
   const [validationErrors, setValidationErrors] = useState({});
 
+  //estas variables son para guardar valores temporales principalmente para la funcion de hh trabajadas
+  const [rowValuesTemp, setRowValuesTemp] = useState({});
 
-  const [rowValues, setRowValues] = useState({});
-
-
-  const rows = useMemo(() => {
-    if (!fields) return [];
-
-    const rowMap = {};
-    fields.forEach(field => {
-      field.values.forEach(value => {
-        if (!rowMap[value.row]) {
-          rowMap[value.row] = { id: value.row };
-        }
-        rowMap[value.row][field.name] = value.value;
-      });
-    });
-
-    return Object.values(rowMap);
-  }, [fields]);
+  const [HHtrabajadasTable, setHHtrabajadasTable] = useState([]);
+  const [sorting, setSorting] = useState([]);
 
   const columns = useMemo(() => {
 
     const safeFields = fields || [];
     const safeValidationErrors = validationErrors || {};
-    return safeFields.map((field) => {
-      const newfieldname = `${field.name}-${field.daily_sheet_id}`;
-      return {
-        // necesitamos un accessorKey único para cada columna
-        accessorKey: newfieldname,
-        header: field.name,
-        ...(field.name === 'Comentarios Codelco' && { enableEditing: false }),
-        muiEditTextFieldProps: ({ cell, row, table }) => ({
-          ...(field.name === 'HH Trabajadas' && {
-            value: rowValues[`${field.name}-${row.id}`] || '',
-            onChange: (e) => handleHH(e, field, row, table)
+    return safeFields
+      .filter((field) => field.name !== 'id') // Filtra la columna "id"
+      .map((field) => {
+        const newfieldname = `${field.name}-${idSheet}`;
+        return {
+          // necesitamos un accessorKey único para cada columna
+          accessorKey: newfieldname,
+          header: field.name,
+          ...(field.name === 'Comentarios EECC' && { size: 300}),
+          ...(field.name === 'Comentarios Codelco' && { enableEditing: false, size: 300 }),
+          muiTableHeadCellProps: {
+            align: 'left',
+          },
+          muiTableBodyCellProps: {
+            align: 'center',
+          },
+          muiTableFooterCellProps: {
+            align: 'center',
+          },
+          ...(field.name === 'HH Trabajadas' && { Footer: () => <div>Total: {HHtrabajadasTable} </div> }),
+          muiEditTextFieldProps: ({ cell, row, table }) => ({
+            ...(field.name === 'HH Trabajadas' && {
+              value: rowValuesTemp[newfieldname] || '',
+              onChange: (e) => handleHH(e, field, row, table),
+
+            }),
+            id: `${field.name}-${row.id}`,
+            required: true,
+            error: !!safeValidationErrors[newfieldname],
+            helperText: safeValidationErrors[newfieldname],
+
+            ...(field.name === 'Estado Personal' && { onChange: (e) => handleEstado(e, field, row, table) }),
+            ...(field.name === 'Jornada' && { onChange: (e) => handleJornada(e, field, row, table) }),
+            ...(field.name === 'Categoría' && { onChange: (e) => handleCategoria(e, field, row, table) }),
+            ...(field.field_type === 'integer' && { type: 'number' }),
+            ...(field.field_type === 'date' && { type: 'date' }),
+            ...(field.field_type === 'hour' && { type: 'time' }),
           }),
-          id: `${field.name}-${row.id}`,
-          required: true,
-          error: !!safeValidationErrors[newfieldname],
-          helperText: safeValidationErrors[newfieldname],
-          ...(field.name === 'Estado Personal' && { onChange: (e) => handleEstado(e, field, row, table) }),
-          ...(field.name === 'Jornada' && { onChange: (e) => handleJornada(e, field, row, table) }),
-          ...(field.name === 'Categoría' && { onChange: (e) => handleCategoria(e, field, row, table) }),
-          ...(field.field_type === 'integer' && { type: 'number' }),
-          ...(field.field_type === 'date' && { type: 'date' }),
-          ...(field.field_type === 'hour' && { type: 'time' }),
-        }),
-        ...(field.field_type === 'list' && {
-          editVariant: 'select',
-          editSelectOptions: field.dropdown_lists,
-        }),
-      };
-    });
-  }, [fields, validationErrors, rowValues]);
+          ...(field.field_type === 'list' && {
+            editVariant: 'select',
+            editSelectOptions: field.dropdown_lists,
+          }),
 
-  useEffect(() => {
+        };
+      });
+  }, [fields, validationErrors, rowValuesTemp, HHtrabajadasTable]);
 
-    // console.log('columns', columns)
-  }, [rowValues]);
 
   // Función para manejar el cambio en "HH trabajadas"
   const handleHH = (event, field, row, table) => {
     const newValue = event.target.value;
-    const valueJornada = rowValues[`Jornada-${row.id}`];
+    const valueJornada = rowValuesTemp[`Jornada-${idSheet}`];
     // Actualiza el estado con el nuevo valor
-    setRowValues(prevValues => ({
+    setRowValuesTemp(prevValues => ({
       ...prevValues,
-      [`${field.name}-${row.id}`]: newValue,
+      [`${field.name}-${idSheet}`]: newValue,
     }));
   };
   const handleJornada = (event, field, row, table) => {
     const newValue = event.target.value;
-    const valueEstado = rowValues[`Estado Personal-${row.id}`];
+    //intentamos tomar el valor desde rowvaluestemp, si no existe, lo tomamos desde row.original
+    let valueEstado = rowValuesTemp[`Estado Personal-${idSheet}`];
+    if (!valueEstado) {
+      if (row.original[`Estado Personal-${idSheet}`] !== undefined) {
+        valueEstado = row.original[`Estado Personal-${idSheet}`];
+      }
+    }
     //por el momento no se esta tomando en cuenta categoría, pero puede que a futuro se necesite
-    const valueCategoria = rowValues[`Categoría-${row.id}`];
-    // Actualiza el estado de Jornada en rowValues
-    setRowValues(prevValues => ({
+    const valueCategoria = rowValuesTemp[`Categoría-${idSheet}`];
+    // Actualiza el estado de Jornada en rowValuesTemp
+    setRowValuesTemp(prevValues => ({
       ...prevValues,
-      [`${field.name}-${row.id}`]: newValue,
+      [`${field.name}-${idSheet}`]: newValue,
     }));
-    let valorFinalHH = rowValues[`HH Trabajadas-${row.id}`];
+    let valorFinalHH = rowValuesTemp[`HH Trabajadas-${idSheet}`];
     //comienza formula para defnir HH trabajadas
     if (valueEstado === "Trabajando" || valueEstado === "Teletrabajo") {
       if (newValue === "5x2") {
@@ -120,25 +124,32 @@ const TableP = ({ fields, idSheet, idDaily }) => {
         valorFinalHH = "9";
       }
     }
-    // Actualiza el estado de HH trabajadas en rowValues
-    setRowValues(prevValues => ({
+    // Actualiza el estado de HH trabajadas en rowValuesTemp
+    setRowValuesTemp(prevValues => ({
       ...prevValues,
-      [`HH Trabajadas-${row.id}`]: valorFinalHH,
+      [`HH Trabajadas-${idSheet}`]: valorFinalHH,
     }));
   };
   // Función para manejar el cambio en "HH trabajadas"
   const handleEstado = (event, field, row, table) => {
     const newValue = event.target.value;
-    const valueJornada = rowValues[`Jornada-${row.id}`];
+    //intentamos tomar el valor desde rowvaluestemp, si no existe, lo tomamos desde row.original
+    let valueJornada = rowValuesTemp[`Jornada-${idSheet}`];
+    if (!valueJornada) {
+      if (row.original[`Jornada-${idSheet}`] !== undefined) {
+        valueJornada = row.original[`Jornada-${idSheet}`];
+      }
+    }
+
     //por el momento no se esta tomando en cuenta categoría, pero puede que a futuro se necesite
-    const valueCategoria = rowValues[`Categoría-${row.id}`];
-    // Actualiza el estado de Estado Personal en rowValues
-    setRowValues(prevValues => ({
+    const valueCategoria = rowValuesTemp[`Categoría-${idSheet}`];
+    // Actualiza el estado de Estado Personal en rowValuesTemp
+    setRowValuesTemp(prevValues => ({
       ...prevValues,
-      [`${field.name}-${row.id}`]: newValue,
+      [`${field.name}-${idSheet}`]: newValue,
     }));
 
-    let valorFinalHH = rowValues[`HH Trabajadas-${row.id}`];
+    let valorFinalHH = rowValuesTemp[`HH Trabajadas-${idSheet}`];
     //comienza formula para defnir HH trabajadas
     if (newValue === "Trabajando" || newValue === "Teletrabajo") {
       if (valueJornada === "5x2") {
@@ -151,143 +162,197 @@ const TableP = ({ fields, idSheet, idDaily }) => {
     } else {
       valorFinalHH = "0";
     }
-    // Actualiza el estado de HH trabajadas en rowValues
-    setRowValues(prevValues => ({
+    // Actualiza el estado de HH trabajadas en rowValuesTemp
+    setRowValuesTemp(prevValues => ({
       ...prevValues,
-      [`HH Trabajadas-${row.id}`]: valorFinalHH,
+      [`HH Trabajadas-${idSheet}`]: valorFinalHH,
     }));
   };
   const handleCategoria = (event, field, row, table) => {
     const newValue = event.target.value;
-    const valueJornada = rowValues[`Jornada-${row.id}`];
-    const valueEstado = rowValues[`Estado Personal-${row.id}`];
-    // Actualiza el estado de Categoria en rowValues
-    setRowValues(prevValues => ({
+    const valueJornada = rowValuesTemp[`Jornada-${idSheet}`];
+    const valueEstado = rowValuesTemp[`Estado Personal-${idSheet}`];
+    // Actualiza el estado de Categoria en rowValuesTemp
+    setRowValuesTemp(prevValues => ({
       ...prevValues,
-      [`${field.name}-${row.id}`]: newValue,
+      [`${field.name}-${idSheet}`]: newValue,
     }));
   };
   const resetRowValues = () => {
-    setRowValues({});
+    setRowValuesTemp({});
   }
 
-
-  // Hooks y manejadores de Crear, Actualizar, Eliminar
-  const { mutateAsync: createField, isPending: isCreatingField } = useCreateField();
-  const { mutateAsync: updateField, isPending: isUpdatingField } = useUpdateField();
-  const { mutateAsync: deleteField, isPending: isDeletingField } = useDeleteField();
   const {
-    data: fetchedUsers = [],
+    data: fetchedData = [],
     isError: isLoadingUsersError,
     isFetching: isFetchingUsers,
     isLoading: isLoadingUsers,
   } = useGetRows(idDaily, idSheet);
 
+  // Hooks y manejadores de Crear, Actualizar, Eliminar
+  const { mutateAsync: createField, isPending: isCreatingField } = useCreateField();
+  const { mutateAsync: updateField, isPending: isUpdatingField } = useUpdateField();
+  const { mutateAsync: deleteField, isPending: isDeletingField } = useDeleteField();
+
 
   const handleCreateField = async ({ values, table, idSheet }) => {
 
     const rowId = table.getState().creatingRowId;
-    const maxRow = Math.max(...fetchedUsers.rows.map(row => row.id), 0);
+    const maxRow = Math.max(...fetchedData.rows.map(row => row.id), 0);
     const newRowId = maxRow + 1;
-    console.log('values', values);
-    console.log('rowValues', rowValues);
-    console.log('idSheet', idSheet);
+    //console.log('values', values);
+    //console.log('rowValuesTemp', rowValuesTemp);
+    //console.log('idSheet', idSheet);
 
     //pasos para solucionar problema de hh trabajadas no viene en values, si es que se actualiza con funcion handleEstado o handleJornada
     const hhtrabajadasValues = `HH Trabajadas-${idSheet}`;
-    const hhtrabajadasRowValues = `HH Trabajadas-mrt-row-create`;
+    const hhtrabajadasRowValues = `HH Trabajadas-${idSheet}`;
     if (!values[hhtrabajadasValues]) {
-      values[hhtrabajadasValues] = rowValues[hhtrabajadasRowValues];
+      values[hhtrabajadasValues] = rowValuesTemp[hhtrabajadasRowValues];
     }
+    //transfmar nombres de fields de la row a nombres de fields de la tabla
+    //toda esta transformaciom es para guardar en la tabla bbdd de valuesRow
+    var transformedValues = [];
+    fetchedData.fields.map((field) => {
+      var step = field.step;
+      var name = `col_${step}`;
+      transformedValues[name] = values[field.name];
 
+    });
+    transformedValues['daily_id'] = idDaily;
+    transformedValues['daily_sheet_id'] = idSheet;
+    const transformedValuesObj = Object.assign({}, transformedValues);
 
-    const transformedValues = fetchedUsers.requiredAll.map((field) => {
-      const value = values[field.name];
-      if (value === undefined || value === null || value === '') {
-        return null;
-      }
-
-      return {
-        field_id: field.id,
-        value: value,
-        daily_sheet_id: field.daily_sheet_id,
-        daily_id: idDaily,
-        row: newRowId,
-        required: field.required,
-        name: field.name
-      };
-    }).filter(value => value !== null);
-
-    const newValidationErrors = validateCurrentSheetFields(idSheet, fetchedUsers.requiredAll, values);
+    const newValidationErrors = validateCurrentSheetFields(idSheet, fetchedData.fields, values);
 
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
     }
 
-    await createField(transformedValues);
+    await createField(transformedValuesObj);
     toast.success('Campos creados exitosamente');
     table.setCreatingRow(null);
     resetRowValues();
+    setValidationErrors({});
   };
 
 
   const handleSaveField = async ({ values, row, table }) => {
+    // console.log('valuesHandleSave', values);
+    //este es el id correlativo que da la tabla
     const rowId = row.id;
+    // este es el id de la row de la base de datos
+    const idname = `id-${idSheet}`;
+    const idValue = row.original[idname];
 
-    const transformedValues = fetchedUsers.requiredAll.map((field) => {
-      const value = values[field.name];
 
-      if (value === undefined) {
-        return null;
-      }
+    //pasos para solucionar problema de hh trabajadas no viene en values, si es que se actualiza con funcion handleEstado o handleJornada
+    const hhtrabajadasValues = `HH Trabajadas-${idSheet}`;
+    const hhtrabajadasRowValues = `HH Trabajadas-${rowId}`;
+    if (!values[hhtrabajadasValues]) {
+      values[hhtrabajadasValues] = rowValuesTemp[hhtrabajadasRowValues];
+    }
 
-      const idValue = field.values.find(v => v.field_id === field.id && v.row === rowId);
+    //transfmar nombres de fields de la row a nombres de fields de la tabla
+    //toda esta transformaciom es para guardar en la tabla bbdd de valuesRow
+    var transformedValues = [];
+    fetchedData.fields.map((field) => {
+      var step = field.step;
+      var name = `col_${step}`;
+      transformedValues[name] = values[field.name];
 
-      return {
-        field_id: field.id,
-        value: value,
-        daily_sheet_id: field.daily_sheet_id,
-        daily_id: idDaily,
-        row: rowId,
-        required: field.required,
-        name: field.name,
-        id: idValue.id
-      };
-    }).filter(value => value !== null);
+    });
+    transformedValues['daily_id'] = idDaily;
+    transformedValues['daily_sheet_id'] = idSheet;
+    transformedValues['id'] = idValue;
+    const transformedValuesObj = Object.assign({}, transformedValues);
 
-    const newValidationErrors = validateCurrentSheetFields(idSheet, fetchedUsers.requiredAll, values);
+    // console.log('handlesave  transformedValuesObj', transformedValuesObj);
+
+
+    const newValidationErrors = validateCurrentSheetFields(idSheet, fetchedData.fields, values);
 
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
     }
 
-    await updateField(transformedValues);
+    await updateField(transformedValuesObj);
     toast.success('Actualizado exitosamente');
     table.setEditingRow(null);
+    setValidationErrors({});
   };
   const openDeleteConfirmModal = (row) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este campo?')) {
-      deleteField({ row: row.original.id, daily_id: idDaily, daily_sheet_id: idSheet });
+      const idname = `id-${idSheet}`;
+      const idValue = row.original[idname];
+      deleteField({ row: idValue });
     }
   };
+  const rowVirtualizerInstanceRef = useRef(null);
+
+  useEffect(() => {
+    //scroll to the top of the table when the sorting changes
+    try {
+      rowVirtualizerInstanceRef.current?.scrollToIndex?.(0);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [sorting]);
 
   const table = useMaterialReactTable({
     columns,
-    data: fetchedUsers.rows ? fetchedUsers.rows : [],
+    data: fetchedData.rows ? fetchedData.rows : [],
+    enablePagination: true,
+    displayColumnDefOptions: {
+      'mrt-row-actions': {
+        size: 100,
+      },
+      'mrt-row-expand': {
+        size: 10,
+      },
+    },
     createDisplayMode: 'row',
     editDisplayMode: 'row',
     enableEditing: true,
+    rowVirtualizerInstanceRef, //optional
+    rowVirtualizerOptions: { overscan: 5 }, //optionally customize the row virtualizer
+    columnVirtualizerOptions: { overscan: 2 }, //optionally customize the column virtualizer
+    enableRowVirtualization: true,
+    onSortingChange: setSorting,
     getRowId: (row) => row.id,
-    muiTableContainerProps: { sx: { minHeight: '500px' } },
+    enableRowNumbers: true,
+    muiTableContainerProps: { sx: { minHeight: '500px', maxHeight: '800px' } },
+    muiPaginationProps: {
+      rowsPerPageOptions: [20, 50, 100, 1000, 2000],
+      showFirstButton: true,
+      showLastButton: false,
+    },
+    muiTableBodyCellProps:{ 
+      sx: {
+        align: 'center',
+        textAlign: 'center',
+        border: '0.01px solid rgba(81, 81, 81, .08)',
+        fontWeight: 'normal',
+      },
+    },
+    muiTableHeadCellProps: {
+      sx: {
+        align: 'center',
+        textAlign: 'center',
+        border: '0.01px solid rgba(81, 81, 81, .08)',
+
+
+      },
+    },
     onCreatingRowCancel: () => {
       setValidationErrors({});
       resetRowValues();
     },
 
     onCreatingRowSave: async ({ values, table }) => {
-      await handleCreateField({ values, table, idSheet });
+      await handleCreateField({ values, table, idSheet, idDaily });
     },
     onEditingRowCancel: () => {
       setValidationErrors({});
@@ -320,18 +385,20 @@ const TableP = ({ fields, idSheet, idDaily }) => {
       </>
     ),
     renderRowActions: ({ row, table }) => (
-      <Box sx={{ display: 'flex', gap: '1rem' }}>
-        <Tooltip title="Editar">
-          <IconButton onClick={() => table.setEditingRow(row)}>
-            <EditIcon />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Eliminar">
-          <IconButton color="error" onClick={() => openDeleteConfirmModal(row)}>
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
-      </Box>
+      <div style={{ display: 'flex', justifyContent: 'space-between', width: '150px' }}>
+        <Box sx={{ display: 'flex', flexWrap: 'nowrap', gap: '8px' }}>
+          <Tooltip title="Editar" sx={{}}>
+            <IconButton onClick={() => table.setEditingRow(row)}>
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Eliminar">
+            <IconButton color="error" onClick={() => openDeleteConfirmModal(row)}>
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </div>
     ),
     renderTopToolbarCustomActions: ({ table }) => (
       <Button variant="contained" onClick={() => table.setCreatingRow(true)}>
@@ -346,6 +413,22 @@ const TableP = ({ fields, idSheet, idDaily }) => {
     },
   });
 
+  useEffect(() => {
+//esto es para el totalizado de las hh trabajadas //HAY QUE HACER LO MISMO PARA LAS HH OPERATIVAS, NO OPERATIVAS, ETC
+    const prePaginationRowModel = table.getPrePaginationRowModel();
+    if (!prePaginationRowModel.rows) return;
+    const dataFiltrada = prePaginationRowModel.rows.map(row => row.original);
+
+    const sumHHTrabajadas = dataFiltrada.reduce((sum, row) => {
+      const hhTrabajadas = parseFloat(row[`HH Trabajadas-${idSheet}`]) || 0;
+      return sum + hhTrabajadas;
+    }, 0);
+    setHHtrabajadasTable(sumHHTrabajadas);
+    console.log('Suma de HH Trabajadas:', sumHHTrabajadas);
+
+  }, [table.getState().columnFilters, fetchedData.rows]);
+
+
   return <MaterialReactTable table={table} />;
 };
 
@@ -357,39 +440,33 @@ function useGetRows(idDaily, idSheet) {
     queryKey: ['fields', idSheet],
     queryFn: async () => {
 
-      const response = await axios.get(`${BASE_URL}/Dailys/${idDaily}/dailyStructure`)
       //rows
-      const response2 = await axios.get(`${BASE_URL}/Dailys/${idDaily}/dailyStructurev2`)
-      var rowsResponse = response2.data.values;
-
+      const response = await axios.get(`${BASE_URL}/Dailys/${idDaily}/dailyStructure`)
+      var rowsResponse = response.data.values[idSheet];
+      if (!rowsResponse) {
+        rowsResponse = [];
+      }
+      if (!Array.isArray(rowsResponse)) {
+        console.log('no es array:');
+        rowsResponse = [rowsResponse];
+      }
+      console.log('response:', response.data.values);
+      //dejo los fields como el nombre de la columna + idSheet para que no se repitan
       var fields = response.data.steps.find(step => step.idSheet === idSheet).fields;
-      const steps = response.data.steps;
-      const allFields = steps.flatMap(step => step.fields);
-      if (!fields) return [];
-
-      const rowMap = {};
-
-
-
-      fields.forEach((field, index) => {
-        let newfieldname = `${field.name}-${idSheet}`;
-        fields[index]['name'] = newfieldname;
-        field.values.forEach(value => {
-          if (!rowMap[value.row]) {
-            rowMap[value.row] = { id: value.row };
-          }
-          rowMap[value.row][newfieldname] = value.value;
-        });
+      fields = fields.map((field) => {
+        field.name = `${field.name}-${idSheet}`;
+        return field;
       });
-      console.log('fields:', fields);
+
+      const steps = response.data.steps;
+      console.log('steps:', steps);
       console.log('rowsResponse:', rowsResponse);
-      console.log('rowMap:', rowMap);
+      console.log('fields:', fields);
+
 
 
       return {
-        requiredAll: fields,
-        
-        //rows: Object.values(rowMap)
+        fields: fields,
         rows: rowsResponse
       };
 
@@ -400,14 +477,16 @@ function useGetRows(idDaily, idSheet) {
 
 
 // CREATE hook
-function useCreateField() {
+function useCreateField(fetchedData) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (fieldData) => {
-      const response = await axios.post(`${BASE_URL}/values`, fieldData);
+
+      const response = await axios.post(`${BASE_URL}/valuesRow`, fieldData);
       return response.data;
     },
     onSuccess: () => {
+      console.log('onSuccess');
       queryClient.invalidateQueries(['fields']); // Invalidar consultas para volver a obtener datos
     },
   });
@@ -445,9 +524,9 @@ function useDeleteField() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ row, daily_id, daily_sheet_id }) => {
-      console.log('daily_sheet_id', daily_sheet_id);
+      console.log('row:', row);
       await axios.delete(`${BASE_URL}/values`, {
-        data: { row, daily_id, daily_sheet_id }
+        data: { row }
       });
     },
 
@@ -472,9 +551,14 @@ const queryClient = new QueryClient();
 
 const Table = ({ data, idDaily }) => {
   if (!data) return null;
-  const fields = data.fields.sort((a, b) => a.step - b.step);
+  let fields = data.fields.sort((a, b) => a.step - b.step);
+
+
   const idSheet = data.idSheet;
 
+  if (!fields.some(field => field.name === 'id')) {
+    fields.push({ name: "id" });
+  }
   return (
     <QueryClientProvider client={queryClient}>
       <TableP fields={fields} idSheet={idSheet} idDaily={idDaily} />
@@ -498,16 +582,17 @@ function validateCurrentSheetFields(currentSheetId, allFields, values) {
   const validationErrorsVar = {};
 
   // Filtrar los campos que pertenecen al idSheet actual
-  const currentSheetFields = allFields.filter(field => field.daily_sheet_id === currentSheetId);
-  console.log('currentSheetFields', currentSheetFields);
+  const currentSheetFields = allFields;
 
   // Validar los campos filtrados
   currentSheetFields.forEach(field => {
-    if (field.required === 'Si' && !values[field.name]) {
+    var fieldAndSheet = field.name;
+    var originalName = field.name.split('-')[0];
+    if (field.required === 'Si' && !values[fieldAndSheet]) {
 
-      let originalName = field.name.split('-')[0];
 
-      if (originalName === "HH Trabajadas") {
+
+      if (field.name === "HH Trabajadas") {
         validationErrorsVar[field.name] = `Seleccione Manualmente el campo`;
       } else {
         validationErrorsVar[field.name] = `${originalName} es requerido`;
