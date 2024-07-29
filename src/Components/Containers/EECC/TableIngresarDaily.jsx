@@ -47,18 +47,29 @@ const TableP = ({ fields, idSheet, idDaily }) => {
           // necesitamos un accessorKey único para cada columna
           accessorKey: newfieldname,
           header: field.name,
-          ...(field.name === 'Comentarios Codelco' && { enableEditing: false }),
-          ...(field.name === 'HH Trabajadas' && {  Footer: () => <div>Total: {HHtrabajadasTable} </div> }),
+          ...(field.name === 'Comentarios EECC' && { size: 300}),
+          ...(field.name === 'Comentarios Codelco' && { enableEditing: false, size: 300 }),
+          muiTableHeadCellProps: {
+            align: 'left',
+          },
+          muiTableBodyCellProps: {
+            align: 'center',
+          },
+          muiTableFooterCellProps: {
+            align: 'center',
+          },
+          ...(field.name === 'HH Trabajadas' && { Footer: () => <div>Total: {HHtrabajadasTable} </div> }),
           muiEditTextFieldProps: ({ cell, row, table }) => ({
             ...(field.name === 'HH Trabajadas' && {
               value: rowValuesTemp[newfieldname] || '',
               onChange: (e) => handleHH(e, field, row, table),
-             
+
             }),
             id: `${field.name}-${row.id}`,
             required: true,
             error: !!safeValidationErrors[newfieldname],
             helperText: safeValidationErrors[newfieldname],
+
             ...(field.name === 'Estado Personal' && { onChange: (e) => handleEstado(e, field, row, table) }),
             ...(field.name === 'Jornada' && { onChange: (e) => handleJornada(e, field, row, table) }),
             ...(field.name === 'Categoría' && { onChange: (e) => handleCategoria(e, field, row, table) }),
@@ -228,7 +239,7 @@ const TableP = ({ fields, idSheet, idDaily }) => {
 
 
   const handleSaveField = async ({ values, row, table }) => {
-   // console.log('valuesHandleSave', values);
+    // console.log('valuesHandleSave', values);
     //este es el id correlativo que da la tabla
     const rowId = row.id;
     // este es el id de la row de la base de datos
@@ -257,7 +268,7 @@ const TableP = ({ fields, idSheet, idDaily }) => {
     transformedValues['id'] = idValue;
     const transformedValuesObj = Object.assign({}, transformedValues);
 
-   // console.log('handlesave  transformedValuesObj', transformedValuesObj);
+    // console.log('handlesave  transformedValuesObj', transformedValuesObj);
 
 
     const newValidationErrors = validateCurrentSheetFields(idSheet, fetchedData.fields, values);
@@ -276,7 +287,7 @@ const TableP = ({ fields, idSheet, idDaily }) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este campo?')) {
       const idname = `id-${idSheet}`;
       const idValue = row.original[idname];
-       deleteField({ row: idValue });
+      deleteField({ row: idValue });
     }
   };
   const rowVirtualizerInstanceRef = useRef(null);
@@ -290,21 +301,51 @@ const TableP = ({ fields, idSheet, idDaily }) => {
     }
   }, [sorting]);
 
-
   const table = useMaterialReactTable({
     columns,
     data: fetchedData.rows ? fetchedData.rows : [],
-    enablePagination: false,
+    enablePagination: true,
+    displayColumnDefOptions: {
+      'mrt-row-actions': {
+        size: 100,
+      },
+      'mrt-row-expand': {
+        size: 10,
+      },
+    },
     createDisplayMode: 'row',
     editDisplayMode: 'row',
     enableEditing: true,
     rowVirtualizerInstanceRef, //optional
     rowVirtualizerOptions: { overscan: 5 }, //optionally customize the row virtualizer
     columnVirtualizerOptions: { overscan: 2 }, //optionally customize the column virtualizer
+    enableRowVirtualization: true,
     onSortingChange: setSorting,
     getRowId: (row) => row.id,
     enableRowNumbers: true,
-    muiTableContainerProps: { sx: { minHeight: '500px' } },
+    muiTableContainerProps: { sx: { minHeight: '500px', maxHeight: '800px' } },
+    muiPaginationProps: {
+      rowsPerPageOptions: [20, 50, 100, 1000, 2000],
+      showFirstButton: true,
+      showLastButton: false,
+    },
+    muiTableBodyCellProps:{ 
+      sx: {
+        align: 'center',
+        textAlign: 'center',
+        border: '0.01px solid rgba(81, 81, 81, .08)',
+        fontWeight: 'normal',
+      },
+    },
+    muiTableHeadCellProps: {
+      sx: {
+        align: 'center',
+        textAlign: 'center',
+        border: '0.01px solid rgba(81, 81, 81, .08)',
+
+
+      },
+    },
     onCreatingRowCancel: () => {
       setValidationErrors({});
       resetRowValues();
@@ -344,18 +385,20 @@ const TableP = ({ fields, idSheet, idDaily }) => {
       </>
     ),
     renderRowActions: ({ row, table }) => (
-      <Box sx={{ display: 'flex', gap: '1rem' }}>
-        <Tooltip title="Editar">
-          <IconButton onClick={() => table.setEditingRow(row)}>
-            <EditIcon />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Eliminar">
-          <IconButton color="error" onClick={() => openDeleteConfirmModal(row)}>
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
-      </Box>
+      <div style={{ display: 'flex', justifyContent: 'space-between', width: '150px' }}>
+        <Box sx={{ display: 'flex', flexWrap: 'nowrap', gap: '8px' }}>
+          <Tooltip title="Editar" sx={{}}>
+            <IconButton onClick={() => table.setEditingRow(row)}>
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Eliminar">
+            <IconButton color="error" onClick={() => openDeleteConfirmModal(row)}>
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </div>
     ),
     renderTopToolbarCustomActions: ({ table }) => (
       <Button variant="contained" onClick={() => table.setCreatingRow(true)}>
@@ -370,25 +413,20 @@ const TableP = ({ fields, idSheet, idDaily }) => {
     },
   });
 
+  useEffect(() => {
+//esto es para el totalizado de las hh trabajadas //HAY QUE HACER LO MISMO PARA LAS HH OPERATIVAS, NO OPERATIVAS, ETC
+    const prePaginationRowModel = table.getPrePaginationRowModel();
+    if (!prePaginationRowModel.rows) return;
+    const dataFiltrada = prePaginationRowModel.rows.map(row => row.original);
 
-
-    useEffect(() => {
-    
-      const prePaginationRowModel = table.getPrePaginationRowModel();
-      if (!prePaginationRowModel.rows) return;
-      const dataFiltrada = prePaginationRowModel.rows.map(row => row.original);
-
-      const sumHHTrabajadas = dataFiltrada.reduce((sum, row) => {
+    const sumHHTrabajadas = dataFiltrada.reduce((sum, row) => {
       const hhTrabajadas = parseFloat(row[`HH Trabajadas-${idSheet}`]) || 0;
       return sum + hhTrabajadas;
     }, 0);
-          setHHtrabajadasTable(sumHHTrabajadas);
+    setHHtrabajadasTable(sumHHTrabajadas);
     console.log('Suma de HH Trabajadas:', sumHHTrabajadas);
 
-      
-    }, [table.getState().columnFilters, fetchedData.rows]);
-    
-
+  }, [table.getState().columnFilters, fetchedData.rows]);
 
 
   return <MaterialReactTable table={table} />;
