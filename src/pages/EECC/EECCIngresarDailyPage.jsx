@@ -19,7 +19,7 @@ const IngresarDaily = ({ onSubmit, users, companies }) => {
   const [steps, setSteps] = useState([]);
 
 
-  const { id } = useParams();
+  const { id, contract_id } = useParams()
 
   const totalSteps = () => {
     return steps.length;
@@ -102,7 +102,7 @@ const handleStepClick = (index) => {
 
   const formContent = (step) => {
     
-        return <TableEECC  data={steps[step]} idDaily = {id} />;
+        return <TableEECC  data={steps[step]} idDaily = {id} contract_id = {contract_id} />;
   };
 
   return (
