@@ -24,7 +24,7 @@ import { Container } from '@mui/material';
 
 import ListItemText from '@mui/material/ListItemText';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
-import HomeIcon from '@mui/icons-material/home';
+// import HomeIcon from '@mui/icons-material/home';
 import MailIcon from '@mui/icons-material/Mail';
 import BadgeIcon from '@mui/icons-material/Badge';
 import GroupIcon from '@mui/icons-material/Group';
@@ -209,7 +209,7 @@ export default function Header() {
                         <ListItem component={Link} to="/" key="Inicio" sx={{ color: 'white' }}>
                             <ListItemButton>
                                 <ListItemIcon sx={{ color: 'white' }}>
-                                    <HomeIcon />
+                                    {/* <HomeIcon /> */}
                                 </ListItemIcon>
                                 <ListItemText primary="Inicio" />
                             </ListItemButton>
