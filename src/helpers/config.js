@@ -1,4 +1,4 @@
-export const BASE_URL = 'http://127.0.0.1:8000/api'
+export const BASE_URL = 'https://laraveldaily-bybhdnaea7d6dmdm.eastus-01.azurewebsites.net/api'
 
 export const getConfig = (token) => {
     const config = {
